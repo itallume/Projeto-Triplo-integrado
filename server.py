@@ -24,6 +24,22 @@ def start_server(port):
     server.close()
 
 
+def login():
+    return ('''
+        1 - Login
+        2 - Signup    
+    ''')    
+
+    
+def menu():
+    return('''
+        Menu:
+        1 - Receber conselhos (aconselhado)
+        2 - Enviar conselhos (conselheiro)
+        3 - Ver conselhos anteriores
+        ''')
+
+
 if __name__ == "__main__":
     port = 12345
     start_server(port)
