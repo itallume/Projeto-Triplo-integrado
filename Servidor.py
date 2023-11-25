@@ -1,3 +1,0 @@
-class Servidor:
-    def __init__(self):
-        pass #teste
