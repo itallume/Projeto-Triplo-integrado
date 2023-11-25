@@ -5,6 +5,7 @@ class user:
         self.__soma_notas = 0
         self.__quantidade_de_notas = 0
         self.__nota = 0
+        self.__password = password
 
     def addNota(self, new_nota):
         self.__nota_geral += new_nota
