@@ -2,7 +2,7 @@ import socket
 
 def start_client(port):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(("25.3.52.178", port))
+    client.connect(("localhost", port))
 
     print("1 - login\n2 - signup")
     
