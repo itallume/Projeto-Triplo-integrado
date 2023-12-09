@@ -51,14 +51,14 @@ def start_client(port):
 
 
 def login():
-    user = input("usuario: ").lower()
-    password = input("senha: ").lower()
+    user = input("usuario: ")
+    password = input("senha: ")
     response = f"login {user} {password}"
     return response
 
 def signup():
-    user = input("usuario: ").lower()
-    password = input("senha: ").lower()
+    user = input("usuario: ")
+    password = input("senha: ")
     response = f"register {user} {password}"
     return response
     

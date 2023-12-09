@@ -1,12 +1,15 @@
-class user:
-    def __init__(self, name_user, password):
-        self.__name_user = name_user
-        self.__password = name_user
+class User:
+    def __init__(self, nickname, password):
+        self.__nickname = nickname
+        self.__password = password
         self.__soma_notas = 0
         self.__quantidade_de_notas = 0
         self.__nota = 0
-        self.__password = password
-
+        
+    @property
+    def Nickname(self):
+        return self.__nickname
+    
     def addNota(self, new_nota):
         self.__nota_geral += new_nota
         self.__quantidade_de_notas += 1
@@ -17,3 +20,7 @@ class user:
         if self.__quantidade_de_notas == 0:
             return "usuário ainda sem nota"
         return self.__nota
+    
+    def confirmPassword(self, password):
+        if password == self.__password:
+            return True

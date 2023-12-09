@@ -1,15 +1,13 @@
 import socket
 import threading
-lista_usuarios = {
-    
-    "fernando": "123"
-}
+from ChainingHashTableProblema import ChainingHashTable
+from User import User
 
 class Server:
     def __init__(self, adress:str , porta:int):
         self.adress = adress
         self.port = porta
-        
+        self.usersHashTable = ChainingHashTable(20)
         
         
     def start_server(self):
@@ -39,23 +37,30 @@ class Server:
             
             # criar um while para o login e cadastro
             if msg_client[0] == "login":   # fazer a tentativa maxima de 10 login por nome de usuário                                                                       
-                if msg_client[1] in lista_usuarios:
-                    if lista_usuarios[msg_client[1]] ==  msg_client[2]:
-                        connection.send("Login efetuado!".encode('utf-8')) 
+                if self.usersHashTable.contains(msg_client[1]):
+                           #retorna um objeto User
+                    if self.usersHashTable.get(msg_client[1]).confirmPassword(msg_client[2]):  # com o metodo confirmPassword da classe User, faz a confirmação da senha
+                        connection.send("Login efetuado!".encode('utf-8')) # subtituir por codigos
                         continue
                     else:
-                        connection.send("Usuário ou senha incorreto.".encode('utf-8'))
+                        connection.send("Usuário ou senha incorreto. 2".encode('utf-8'))  # subtituir por codigos
                         continue
                 else:
-                    connection.send("Usuário ou senha incorreto.".encode('utf-8'))
+                    connection.send("Usuário ou senha incorreto. 1".encode('utf-8')) # subtituir por codigos
                     continue
-            if msg_client[0] == "register":                                                                          
-                if msg_client[1] in lista_usuarios:
-                    connection.send("erro".encode('utf-8'))
+                
+            if msg_client[0] == "register":   
+                                                                                       
+                if self.usersHashTable.contains(msg_client[1]): # verifica se já existe algum usuário com o nome de usuário desejado
+                    connection.send("error".encode('utf-8')) # subtituir por codigos
                     continue
-                lista_usuarios[msg_client[1]] = msg_client[2]
-                connection.send("ok".encode('utf-8'))
-                print(lista_usuarios)
+                
+                objectUser = User(msg_client[1], msg_client[2])
+                self.usersHashTable.put(msg_client[1], objectUser)
+                
+                connection.send("ok".encode('utf-8')) # subtituir por codigos
+                self.usersHashTable.displayTable()
+                print()
                 continue
                 
                         
