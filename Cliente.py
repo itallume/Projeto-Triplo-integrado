@@ -28,9 +28,6 @@ def start_client(port):
 
             if validate_register != "erro":
                 break
-
-
-
         else:
             print("Não foi possivel Logar, tente novamente")
             return #remover esse break e tratar depois

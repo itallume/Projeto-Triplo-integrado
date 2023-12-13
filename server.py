@@ -33,30 +33,37 @@ class Server:
         while True:
             
             msg_client = connection.recv(1024).decode("utf-8").split(" ")
-            
-            
             # criar um while para o login e cadastro
-            if msg_client[0] == "login":   # fazer a tentativa maxima de 10 login por nome de usuário                                                                       
-                if self.usersHashTable.contains(msg_client[1]):
-                           #retorna um objeto User
-                    if self.usersHashTable.get(msg_client[1]).confirmPassword(msg_client[2]):  # com o metodo confirmPassword da classe User, faz a confirmação da senha
-                        connection.send("Login efetuado!".encode('utf-8')) # subtituir por codigos
-                        continue
+            if msg_client[0] == "login":   # fazer a tentativa maxima de 10 login por nome de usuário    
+                for i in range(10): 
+                    if i == 9:
+                        break                                                                 
+                    if self.usersHashTable.contains(msg_client[1]):
+                            #retorna um objeto User
+                        if self.usersHashTable.get(msg_client[1]).confirmPassword(msg_client[2]):  # com o metodo confirmPassword da classe User, faz a confirmação da senha
+                            connection.send("Login efetuado!".encode('utf-8')) # subtituir por codigos
+                            userObject = self.usersHashTable.get(msg_client[1])
+                            break
+                        else:
+                            connection.send("Usuário ou senha incorreto. 2".encode('utf-8'))  # subtituir por codigos
+                            msg_client = connection.recv(1024).decode("utf-8").split(" ") 
+                            continue
                     else:
-                        connection.send("Usuário ou senha incorreto. 2".encode('utf-8'))  # subtituir por codigos
+                        connection.send("Usuário ou senha incorreto. 1".encode('utf-8')) # subtituir por codigos
+                        msg_client = connection.recv(1024).decode("utf-8").split(" ") 
                         continue
-                else:
-                    connection.send("Usuário ou senha incorreto. 1".encode('utf-8')) # subtituir por codigos
-                    continue
-                
+                connection.send("muitas tentativas de login, tente mais tarde".encode('utf-8'))
+                connection.close()
+                return
+            
             if msg_client[0] == "register":   
                                                                                        
                 if self.usersHashTable.contains(msg_client[1]): # verifica se já existe algum usuário com o nome de usuário desejado
                     connection.send("error".encode('utf-8')) # subtituir por codigos
                     continue
-                
-                objectUser = User(msg_client[1], msg_client[2])
-                self.usersHashTable.put(msg_client[1], objectUser)
+                 #usar lock aqui!!!
+                UserObject = User(msg_client[1], msg_client[2])
+                self.usersHashTable.put(msg_client[1], UserObject)
                 
                 connection.send("ok".encode('utf-8')) # subtituir por codigos
                 self.usersHashTable.displayTable()
