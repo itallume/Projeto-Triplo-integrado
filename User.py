@@ -5,6 +5,7 @@ class User:
         self.__soma_notas = 0
         self.__quantidade_de_notas = 0
         self.__nota = 0
+        self.__chat = None #ISSO É PROVISÓRIO, APENAS PARA TESTE
         
     @property
     def nickname(self):
@@ -13,6 +14,14 @@ class User:
     @property
     def rate(self):
         return self.__nota
+    
+    @property
+    def chat(self):
+        return self.__chat
+    
+    @chat.setter
+    def chat(self, newchat):
+        self.__chat = newchat
     
     def addNota(self, new_nota):
         self.__nota_geral += new_nota
