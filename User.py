@@ -7,19 +7,18 @@ class User:
         self.__nota = 0
         
     @property
-    def Nickname(self):
+    def nickname(self):
         return self.__nickname
+    
     @property
     def rate(self):
         return self.__nota
+    
     def addNota(self, new_nota):
         self.__nota_geral += new_nota
         self.__quantidade_de_notas += 1
         self.__nota = self.__soma_notas / self.__quantidade_de_notas 
 
-    
-    
-    
     def confirmPassword(self, password):
         if password == self.__password:
             return True

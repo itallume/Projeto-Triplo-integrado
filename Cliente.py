@@ -1,5 +1,21 @@
 import socket
 
+translate = {
+    "210": "cadastro efetuado",
+    "211": "Nome de usuário já existente",
+    "200": "login efetuado", 
+    "201": "Usuário ou senha errado",
+    "220": "Tipo setado",
+    "221": "Tipo inexistente",
+    "230": "Tema definido",
+    "231": "Intensidade inexistente",
+    "240": "comunicação feita",
+    "250": "Desconectado",
+    "260": "nota apurada",
+    "261": "Nota inválida",
+
+}
+
 def start_client(port):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(("localhost", port))
