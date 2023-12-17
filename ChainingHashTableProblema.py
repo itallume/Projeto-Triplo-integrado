@@ -1,7 +1,7 @@
 # Implementação de HashTable com tratamento de colisão por encadeamento
 # Autor: Alex Sandro
 from typing import List
-
+from ListaEncadeadaOrdenada import Lista
 class AbsentKeyException(Exception):
     def __init__(self,msg):
         super().__init__(msg)
@@ -17,7 +17,23 @@ class Entry:
     def __eq__(self, outroObjeto):
         '''Método que vai possibilitar comparar chaves quando a chave for um objeto de outra classe'''
         return self.key == outroObjeto.key
-        
+    
+    def __ne__(self, outroObjeto):
+        '''Método que vai possibilitar comparar chaves quando a chave for um objeto de outra classe'''
+        return self.key != outroObjeto.key
+    
+    def __lt__(self, outroObjeto):
+        '''Método que vai possibilitar comparar chaves quando a chave for um objeto de outra classe'''
+        return self.key < outroObjeto.key
+    
+    def __le__(self, outroObjeto):
+        '''Método que vai possibilitar comparar chaves quando a chave for um objeto de outra classe'''
+        return self.key <= outroObjeto.key
+    
+    def __ge__(self, outroObjeto):
+        '''Método que vai possibilitar comparar chaves quando a chave for um objeto de outra classe'''
+        return self.key >= outroObjeto.key
+    
     def __str__( self )->str:
         return "(" + str( self.key ) + ":" + str( self.value ) + ")"
  
@@ -25,7 +41,7 @@ class ChainingHashTable:
     def __init__(self, size=10):
         self.size = size
         # inicializa a tabela de dispersão com uma série de lists vazios
-        self.table = list([] for i in range(self.size))
+        self.table = list(Lista() for i in range(self.size))
 
 
     def __hash(self, key:any):
@@ -42,11 +58,13 @@ class ChainingHashTable:
         slot = self.__hash( key )
         # print(f'key {key} mapeada ao slot {slot}')
 
-        for entry in self.table[slot]: # varre as entradas da ht para ver se já existe a chave
-            if key == entry.key: 
+        # varre as entradas da ht para ver se já existe a chave
+        if not self.table[slot].estaVazia():
+            if self.contains(key):
                 return "Chave já existente" #
-            
-        self.table[slot].append(Entry(key,value))
+        
+        entry = Entry(key,value)    
+        self.table[slot].inserir(entry)
         return slot
             
 
@@ -54,11 +72,13 @@ class ChainingHashTable:
         '''
         Obtem o valor armazenado na entrada referente à chave "key"
         '''
-        slot = self.__hash(key)
-        for i in range(len(self.table[slot])):
-            if key == self.table[slot][i].key:
-                return self.table[slot][i].value
-        else:
+        try:
+            
+            FoundedKey = self.__getObejctByKey(key)
+            return FoundedKey.value
+        
+        except:
+            
             raise AbsentKeyException(f'Chave {key} inexistente na tabela hash')
 
    
@@ -73,6 +93,7 @@ class ChainingHashTable:
         info += " }"
         return info
 
+
     def __len__(self)->int:
         count = 0
         for i in self.table:
@@ -86,7 +107,7 @@ class ChainingHashTable:
         """
         result = []
         for lst in self.table:
-            if lst != None:
+            if not lst.estaVazia():
                 for entry in lst:
                     result.append( entry.key )
         return result
@@ -96,7 +117,7 @@ class ChainingHashTable:
         """
         result = []
         for lst in self.table:
-            if lst != None:
+            if not lst.estaVazia():
                 for entry in lst:
                     result.append( entry.value )
         return result
@@ -114,24 +135,28 @@ class ChainingHashTable:
         Método que verifica se uma chave está presente na tabela hash e devolve a
         entrada correspondente quando a busca é realizada com sucesso
         '''
-        slot = self.__hash(key)
-        for i in range(len(self.table[slot])):
-            if key == self.table[slot][i].key:
-                return self.table[slot][i]
-        else:
+        try:
+            
+            entry = self.__getObejctByKey(key)    
+            return entry
+        
+        except:
             return None
           
     def remove(self, key:any)->Entry:
         '''
         Método que remove a entrada correspondente à chave passada como argumento
         '''
-        slot = self.__hash(key)
-        for i in range(len(self.table[slot])):
-            if key == self.table[slot][i].key:
-                entry = self.table[slot][i]
-                del self.table[slot][i]
-                return entry
-        raise AbsentKeyException(f'Chave {key} não está presente na tabela hash') 
+        try:
+            slot = self.__hash(key)
+          
+            entry = self.__getObejctByKey(key)
+            posicao = self.BinarySearch(self.table[slot], entry)
+            self.table[slot].remover(posicao)  
+            return entry
+        
+        except:
+            raise AbsentKeyException(f'Chave {key} não está presente na tabela hash') 
 
 
     def displayTable(self):
@@ -145,38 +170,95 @@ class ChainingHashTable:
             for entry in items:
                 print(f'[ {entry.key},{entry.value} ] ',end='')
             print()
+    
+    
+    def BinarySearch(self, lista, chave):
+        inicio = 1
+        fim = len(lista)
+        # Enquanto houver distância entre inicio e fim
+        while (inicio <= fim ):
+
+            meio = (inicio + fim)//2
+            if ( chave < lista.elemento(meio) ):
+                fim = meio - 1 # Ajusta a pos. final
+                
             
-           
-# main function
-# size = int(input("Enter the Size of the hash table : "))
-# table1 = ChainingHashTable(size)
+            elif ( chave > lista.elemento(meio)):
+                inicio = meio + 1 # Ajusta a pos. inicial
+                
+            
+            else:
+                return meio # elemento foi encontrado!
+
+            # Se finalizar o laço, percorreu todo o lista e
+            # não encontrou
+        return -1
+    
+    def __getObejctByKey(self, key):
+        """_summary_
+
+        Args:
+            key (_any_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        slot = self.__hash(key)
+        
+        capsula = Entry(key, None)       
+        try:
+            
+            search = self.BinarySearch(self.table[slot], capsula)
+            FoundedKey = self.table[slot].elemento(search)  
+            return FoundedKey
+        
+        except:
+            
+            raise AbsentKeyException(f"Chave {key} não está presente na tabela hash")
+        
+    
+    
+size = int(input("Enter the Size of the hash table : "))
+table1 = ChainingHashTable(size)
  
-# # storing elements in table
-# table1.put("Alex",'Alex Objeto')
-# table1.displayTable()
-# input()
+# storing elements in table
+table1.put("Alex",'Alex Objeto')
+table1.displayTable()
 
-# table1.put("alex",'alex Obejto')
-# table1.displayTable()
-# input()
-# table1.put(31,'nathan')
-# table1.put(90,'alice')
+table1.put("alex",'alex Obejto')
+table1.displayTable()
 
-# print('len',len(table1))
+table1.put("31",'nathan')
+table1.put("90",'alice')
 
-# table1.put(28,'matheus')
-# table1.put(88,'duda')
-# table1.put(17,'jessika')
-# table1.put(22,'bruno')
-# table1.displayTable()
-# input()
+print('len',len(table1))
 
-# print('get():', table1.get("Alex"))
-# table1.displayTable()
-# print(table1.keys())
-# print(table1.values())
-# print(table1)
+table1.put("28",'matheus')
+table1.put("88",'duda')
+table1.put("17",'jessika')
+table1.put("22",'bruno')
+table1.put("13",'Devyd')
 
-# table1.put('ed-tsi','Estrutura de Dados')
- 
+table1.displayTable()
+print('get():', table1.get("Alex"))
+table1.displayTable()
+print(table1.keys())
+print(table1.values())
+print()
+print(table1)
+
+table1.put('ed-tsi','Estrutura de Dados')
+
+table1.displayTable()
+print(table1.remove("31"))
+print(table1.remove("90"))
+print(table1.remove("28"))
+print(table1.remove("88"))
+print(table1.remove("17"))
+print(table1.remove("22"))
+print(table1.contains("Alex"))
+print(table1.contains("alex"))
+print("Devyd é:", table1.contains("13"))
+
+
 
