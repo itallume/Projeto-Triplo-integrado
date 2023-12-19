@@ -218,47 +218,47 @@ class ChainingHashTable:
         
     
     
-size = int(input("Enter the Size of the hash table : "))
-table1 = ChainingHashTable(size)
+# size = int(input("Enter the Size of the hash table : "))
+# table1 = ChainingHashTable(size)
  
-# storing elements in table
-table1.put("Alex",'Alex Objeto')
-table1.displayTable()
+# # storing elements in table
+# table1.put("Alex",'Alex Objeto')
+# table1.displayTable()
 
-table1.put("alex",'alex Obejto')
-table1.displayTable()
+# table1.put("alex",'alex Obejto')
+# table1.displayTable()
 
-table1.put("31",'nathan')
-table1.put("90",'alice')
+# table1.put("31",'nathan')
+# table1.put("90",'alice')
 
-print('len',len(table1))
+# print('len',len(table1))
 
-table1.put("28",'matheus')
-table1.put("88",'duda')
-table1.put("17",'jessika')
-table1.put("22",'bruno')
-table1.put("13",'Devyd')
+# table1.put("28",'matheus')
+# table1.put("88",'duda')
+# table1.put("17",'jessika')
+# table1.put("22",'bruno')
+# table1.put("13",'Devyd')
 
-table1.displayTable()
-print('get():', table1.get("Alex"))
-table1.displayTable()
-print(table1.keys())
-print(table1.values())
-print()
-print(table1)
+# table1.displayTable()
+# print('get():', table1.get("Alex"))
+# table1.displayTable()
+# print(table1.keys())
+# print(table1.values())
+# print()
+# print(table1)
 
-table1.put('ed-tsi','Estrutura de Dados')
+# table1.put('ed-tsi','Estrutura de Dados')
 
-table1.displayTable()
-print(table1.remove("31"))
-print(table1.remove("90"))
-print(table1.remove("28"))
-print(table1.remove("88"))
-print(table1.remove("17"))
-print(table1.remove("22"))
-print(table1.contains("Alex"))
-print(table1.contains("alex"))
-print("Devyd é:", table1.contains("13"))
+# table1.displayTable()
+# print(table1.remove("31"))
+# print(table1.remove("90"))
+# print(table1.remove("28"))
+# print(table1.remove("88"))
+# print(table1.remove("17"))
+# print(table1.remove("22"))
+# print(table1.contains("Alex"))
+# print(table1.contains("alex"))
+# print("Devyd é:", table1.contains("13"))
 
 
 

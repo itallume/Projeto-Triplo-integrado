@@ -24,28 +24,44 @@ def start_client(port):
     
     loginChoice = input("Escolha: ")
     
-    
+    def Validate_register():
+        signup = signin()
+        client.send(signup.encode("utf-8"))
+        validate_signup = client.recv(1024).decode("utf-8")
+        if validate_signup == "210":
+            print(translate[validate_signup]) #Cadastro efetuado com Sucesso!
+        while validate_signup == "211": #while msm???
+            print(translate[validate_signup]) #Nome de Usuario ja Existente, tente novamente!
+            return Validate_register()
+        
+        print(f"Servidor: {validate_signup}")
+        return
+
+
+    def Validate_login():
+        log = login()
+        client.send(log.encode("utf-8"))
+        validate_login = client.recv(1024).decode("utf-8")
+        if validate_login == "200":
+            print(translate[validate_login]) #Login efetuado com Sucesso!
+
+        while validate_login == "201":
+            print(translate[validate_login]) #Login nao efetuado, Usuário ou Senha incorretos!
+            return Validate_login()
+        
+        print(f"Servidor: {validate_login}")
+        return
+
     while True:
         if loginChoice == "1":
-            log = login()
-            client.send(log.encode("utf-8"))
-            validate_login = client.recv(1024).decode("utf-8")
-            if validate_login == "200":
-                print(translate[validate_login])
-                break
-            print(f"Servidor: {validate_login}")
+            Validate_login()
 
         elif loginChoice == "2":
-            register = signup()
-            client.send(register.encode("utf-8"))
-            validate_register = client.recv(1024).decode("utf-8")
-            if validate_register == "210":
-                print(translate[validate_register])
-                break
-           
+            Validate_register()
+
         else:
             print("Não foi possivel Logar, tente novamente")
-            return #remover esse break e tratar depois
+        break #remover esse break e tratar depois
 
 
     while True:
@@ -62,24 +78,21 @@ def start_client(port):
         
     while True:
         response_server = client.recv(1024).decode("utf-8").split("&")
-        if response_server[0] == "CONECTED":
+        if response_server[1] != 'exit':
             print(response_server[1])
             threading.Thread(target=escutar, args=(client,)).start()
-            break
+        break
         
-    while True:
+    while True: # tira desse while para resolver bug do CLIENTE DESCONECTAR E ENVIAR MSG MSM ASSIM
         msg = input(">> ")
         client.send(f"msg&{msg}".encode("utf-8"))
         
-    response_server = client.recv(1024).decode("utf-8")
-    print(f"Servidor: {response_server}")
-    
-    client.close()
 
 def escutar(client):
     while True:
         try:
             response_server = client.recv(4096).decode("utf-8").split("&")
+            print(response_server[1])
             assert response_server[0] != "250"
         except Exception:
             print("Desconectado")
@@ -92,7 +105,7 @@ def login():
     response = f"login {user} {password}"
     return response
 
-def signup():
+def signin():
     user = input("usuario: ")
     password = input("senha: ")
     response = f"register {user} {password}"

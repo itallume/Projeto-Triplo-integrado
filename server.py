@@ -63,7 +63,7 @@ class Server:
             if msg_client[0] == "register":   
                                                                                        
                 if self.usersHashTable.contains(msg_client[1]): # verifica se já existe algum usuário com o nome de usuário desejado
-                    connection.send("error".encode('utf-8')) # subtituir por codigos
+                    connection.send("211".encode('utf-8')) # subtituir por codigos
                     continue
                  #usar lock aqui!!!
                 UserObject = User(msg_client[1], msg_client[2])
@@ -94,33 +94,24 @@ class Server:
                     break
         
         while True: 
-            try:
-                msg_client = connection.recv(4096).decode("utf-8").split("&") # receber a mensagem do cliente e separar o comando do texto
-                assert msg_client[1] is not ''
-            except Exception:
-                print("Desconectado")
-                msg_client = '250'
-                for participants in chat.getClients():
-                    print("socket: ", participants)
-                    participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))
-                connection.close()
-                break
-
-
-            print(msg_client)
+            msg_client = connection.recv(4096).decode("utf-8").split("&") # receber a mensagem do cliente e separar o comando do texto
+            print(msg_client) 
             if msg_client[0] == "msg":
                 for participants in chat.getClients():
                     print("socket: ", participants)
-                    participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))   
-                             
-            # if not msg_client:
-            #     break
-            # print(f"Cliente: {msg_client}")
-            
-            # response = input("Servidor: ")
-            # connection.send(response.encode('utf-8'))
+                    participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
 
-        connection.close()
+
+                
+                 
+            if msg_client[1].lower() == 'exit':
+                print("Desconectado")
+                msg_client = '250'
+                for participants in chat.getClients():
+                    participants.send(msg_client[1].encode('utf-8')) #talvez cause bug
+                    connection.close()
+                    #PRECISA PARAR A THREAD
+                break
         
     def matchClients(self):
         while len(self.chats) != 0:
@@ -133,7 +124,7 @@ class Server:
                 chat.changeStatus()
                 self.usersHashTable.get(self.arvore[0][0]).chat = chat
                 for connection in chat_clients:
-                    connection.send(f"CONECTED&CONECTADO!\nASSUNTO DO CHAT: {chat.assunto}".encode('utf-8'))
+                    connection.send(f"200&CONECTADO!\nASSUNTO DO CHAT: {chat.assunto}".encode('utf-8'))
                 
     def login():
         return ('''
