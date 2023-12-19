@@ -93,8 +93,20 @@ class Server:
                     chat = UserObject.chat
                     break
         
-        while True:
-            msg_client = connection.recv(4096).decode("utf-8").split("&")
+        while True: 
+            try:
+                msg_client = connection.recv(4096).decode("utf-8").split("&") # receber a mensagem do cliente e separar o comando do texto
+                assert msg_client[1] is not ''
+            except Exception:
+                print("Desconectado")
+                msg_client = '250'
+                for participants in chat.getClients():
+                    print("socket: ", participants)
+                    participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))
+                connection.close()
+                break
+
+
             print(msg_client)
             if msg_client[0] == "msg":
                 for participants in chat.getClients():

@@ -78,8 +78,13 @@ def start_client(port):
 
 def escutar(client):
     while True:
-        response_server = client.recv(4096).decode("utf-8").split("&")
-        print(response_server[1])
+        try:
+            response_server = client.recv(4096).decode("utf-8").split("&")
+            assert response_server[0] != "250"
+        except Exception:
+            print("Desconectado")
+            client.close()
+            break
     
 def login():
     user = input("usuario: ")
