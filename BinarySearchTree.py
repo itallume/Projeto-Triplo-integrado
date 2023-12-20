@@ -87,10 +87,22 @@ class BinarySearchTree:
         else:
             return None
 
-    def search(self, key:any ):
+    def GetAlloccurrences(self, key:any ):
+        AllOccurrences = []
         if( self.__root != None ):
-            node = self.__searchData(key, self.__root)
-            return node.data if node is not None else None
+            node = self.__GetOccurrences(key, self.__root, AllOccurrences)
+            return AllOccurrences if len(AllOccurrences) > 0 else None
+        else:
+            return None
+
+    def __GetOccurrences(self, key:any, node:'Node', AllOccurrences:list):
+        
+        if ( key == node.data):
+            AllOccurrences.append(node.data)
+        elif ( key < node.data and node.leftChild != None):
+            return self.__searchData( key, node.leftChild)
+        elif ( key >= node.data and node.rightChild != None):
+            return self.__searchData( key, node.rightChild)
         else:
             return None
 
@@ -244,31 +256,35 @@ if __name__ == '__main__':
     bst.add(54)
     bst.add(72)
     bst.add(67)
-
-    print('Consultando o nó raiz:')
-    print('Root:',bst.getRoot())
-
-    print('Travessia em preordem:')
-    bst.preorder()
-    print('Travessia em inordem:')
-    bst.inorder()
-    print('Travessia em posordem:')
-    bst.postorder()
+    bst.add(17)
+    bst.add(17)
 
 
-    chave = 72
-    print('Pesquisando a chave',chave,' na árvore:')
-    if( bst.search( chave )):
-        print('\nChave',chave,'está na árvore')
-    else:
-        print('\nChave',chave,'NÃO está na árvore')
+    print("todas ocorrencias:", bst.GetAlloccurrences() )
+    # print('Consultando o nó raiz:')
+    # print('Root:',bst.getRoot())
+
+    # print('Travessia em preordem:')
+    # bst.preorder()
+    # print('Travessia em inordem:')
+    # bst.inorder()
+    # print('Travessia em posordem:')
+    # bst.postorder()
+    
+
+    # chave = 72
+    # print('Pesquisando a chave',chave,' na árvore:')
+    # if( bst.search( chave )):
+    #     print('\nChave',chave,'está na árvore')
+    # else:
+    #     print('\nChave',chave,'NÃO está na árvore')
         
-    print('\nTentando apagar o nó de chave',chave)
-    print('No removido:',bst.deleteNode(chave))
+    # print('\nTentando apagar o nó de chave',chave)
+    # print('No removido:',bst.deleteNode(chave))
 
 
-    print('Contagem de nós: ', bst.count())
+    # print('Contagem de nós: ', bst.count())
             
-    bst.preorder()
-    bst.inorder()
-    bst.postorder()
+    # bst.preorder()
+    # bst.inorder()
+    # bst.postorder()

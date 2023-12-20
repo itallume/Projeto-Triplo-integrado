@@ -26,6 +26,10 @@ class Entry:
         '''Método que vai possibilitar comparar chaves quando a chave for um objeto de outra classe'''
         return self.key < outroObjeto.key
     
+    def __gt__(self, outro_objeto):
+        '''Método que possibilita comparar chaves quando a chave for um objeto de outra classe'''
+        return self.key > outro_objeto.key
+
     def __le__(self, outroObjeto):
         '''Método que vai possibilitar comparar chaves quando a chave for um objeto de outra classe'''
         return self.key <= outroObjeto.key

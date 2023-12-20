@@ -4,7 +4,7 @@ class User:
         self.__password = password
         self.__soma_notas = 0
         self.__quantidade_de_notas = 0
-        self.__nota = 0
+        self.__nota = 10
         self.__chat = None #ISSO É PROVISÓRIO, APENAS PARA TESTE
         
     @property

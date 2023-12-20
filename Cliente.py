@@ -61,9 +61,6 @@ def start_client(port):
             print("\nEsperando por um(a) Indeciso(a)...\n")
             client.send(f"type&counselor".encode("utf-8"))
 
-    def disconnected():
-        print("Você foi desconectado!")
-        return client.close()
 
     def Validate_register():
         signup = signin()
@@ -91,7 +88,7 @@ def start_client(port):
         if validate_login == "299": # 
             print("Voce foi desconectado!!")
             print("\n",translate[validate_login])
-            return disconnected()
+            return
 
         while validate_login == "201":
             print("\n",translate[validate_login])
