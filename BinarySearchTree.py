@@ -87,24 +87,21 @@ class BinarySearchTree:
         else:
             return None
 
-    def GetAndMajorOccurrences(self, key:any ):
-        MajorOccurrnces = []
-        if( self.__root != None ):
-            node = self.__GetMajorOccurrences(key, self.__root, MajorOccurrnces)
-            return MajorOccurrnces if len(MajorOccurrnces) > 0 else None
-        else:
-            return None
+    def GetAndMajorOccurrences(self, key: any):
+        MajorOccurrences = []
 
-    def __GetMajorOccurrences(self, key:any, node:'Node', MajorOccurrnces:list):
-        if node == N
-        if ( key == node.data    MajorOccurrnces.append(node.data)
-            return self.__GetMajorOccurrences( key, node.rightChild, MajorOccurrnces)
-        elif ( key < node.data and node.l
-        eftChild != None):
-            return self.__GetMajorOccurrences( key, node.leftChild, MajorOccurrnces)
-        if key > node.data and node.rightChild != None:
-            MajorOccurrnces.append(node.data)
-            return self.__GetMajorOccurrences( key, node.rightChild, MajorOccurrnces)
+        if self.__root is not None:
+            self.__GetAndMajorOccurrences(key, self.__root, MajorOccurrences)
+
+        return MajorOccurrences if MajorOccurrences else None
+
+    def __GetAndMajorOccurrences(self, key: any, node: 'Node', MajorOccurrences: list):
+        
+        if( node != None):
+            self.__GetAndMajorOccurrences(key, node.leftChild, MajorOccurrences)
+            if node.data >= key :
+                MajorOccurrences.append(node.data)
+            self.__GetAndMajorOccurrences(key, node.rightChild, MajorOccurrences)
         
 
     def __searchData(self, key:any, node:'Node'):
@@ -258,6 +255,7 @@ if __name__ == '__main__':
     bst.add(72)
     bst.add(67)
     bst.add(17)
+    bst.add(80)
     bst.add(17)
 
 
