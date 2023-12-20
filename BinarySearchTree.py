@@ -99,10 +99,11 @@ class BinarySearchTree:
         
         if ( key == node.data):
             AllOccurrences.append(node.data)
+            
         elif ( key < node.data and node.leftChild != None):
-            return self.__searchData( key, node.leftChild)
-        elif ( key >= node.data and node.rightChild != None):
-            return self.__searchData( key, node.rightChild)
+            return self.__GetOccurrences( key, node.leftChild, AllOccurrences)
+        if key >= node.data and node.rightChild != None:
+            return self.__GetOccurrences( key, node.rightChild, AllOccurrences)
         else:
             return None
 
@@ -260,7 +261,7 @@ if __name__ == '__main__':
     bst.add(17)
 
 
-    print("todas ocorrencias:", bst.GetAlloccurrences() )
+    print("todas ocorrencias:", bst.GetAlloccurrences(17) )
     # print('Consultando o nó raiz:')
     # print('Root:',bst.getRoot())
 
@@ -286,5 +287,5 @@ if __name__ == '__main__':
     # print('Contagem de nós: ', bst.count())
             
     # bst.preorder()
-    # bst.inorder()
+    bst.inorder()
     # bst.postorder()
