@@ -79,7 +79,7 @@ def start_client(port):
     def Validate_register():
         signup = signin()
         client.send(signup.encode("utf-8"))
-        validate_signup = client.recv(1024).decode("utf-8")
+        validate_signup = client.recv(4096).decode("utf-8")
         if validate_signup == "210":
             print("\n",translate[validate_signup]) #Cadastro efetuado com Sucesso!
         while validate_signup == "211": #while msm???
