@@ -3,6 +3,7 @@ class InfoCounselor:
         self.__nickname = nickname
         self.__socket = socket
         self.__nota = nota #encapsulados!!!
+        self.__notasArray = []
 
     @property
     def nickname(self):
@@ -16,6 +17,19 @@ class InfoCounselor:
     def nota(self):
         return self.__nota
     
+    @property
+    def notasArray(self):
+        return self.__notas
+
+    def addNota(self, new_nota):
+        self.__nota = self.__notasArray.append(new_nota)
+
+    def calcular_media(self):
+        if len(self.__notasArray) == 0:
+            return 0
+        return sum(self.__notasArray) / len(self.__notasArray)
+
+
 
     def __str__(self):
         return f"{self.nickname} - {self.nota}"
