@@ -97,6 +97,17 @@ class Server:
             msg_client = connection.recv(4096).decode("utf-8").split("&") # receber a mensagem do cliente e separar o comando do texto
             print(msg_client) 
             if msg_client[0] == "msg":
+
+                if msg_client[1].lower() == 'exit':
+                    print("Desconectado")
+                    response = '250'
+                    for participants in chat.getClients():
+                        participants.send(response.encode('utf-8')) #talvez cause bug
+                        connection.close()
+                        #PRECISA PARAR A THREAD
+                    break
+        
+
                 for participants in chat.getClients():
                     print("socket: ", participants)
                     participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
@@ -104,14 +115,7 @@ class Server:
 
                 
                  
-            if msg_client[1].lower() == 'exit':
-                print("Desconectado")
-                msg_client = '250'
-                for participants in chat.getClients():
-                    participants.send(msg_client[1].encode('utf-8')) #talvez cause bug
-                    connection.close()
-                    #PRECISA PARAR A THREAD
-                break
+
         
     def matchClients(self):
         while len(self.chats) != 0:
