@@ -19,8 +19,8 @@ translate = {
     "260": "Nota apurada",
     "261": "Nota inválida",
     "299": "Muitas tentativas de login, tente mais tarde.",
-    "270": "Conectado a um chat"
-
+    "270": "Conectado a um chat",
+    "555": "Erro no servidor"
 }
 
 def start_client(port):
@@ -31,6 +31,7 @@ def start_client(port):
     def waitingConnection():    
         while True:
             response_server = client.recv(4096).decode("utf-8").split("&")
+            print(response_server)
             if translate[response_server[0]] == "270":
                 print(translate[response_server[0]], f"Assunto: {response_server[1]} Intensidade: {response_server[2]}")
             return
@@ -126,6 +127,7 @@ def start_client(port):
             return Validate_register()
         
     conectado = True
+    
     def escutar(): #cuidado com o login e signup eu achava  qmeu codg tava errado
         while True:
             response_server = client.recv(4096).decode("utf-8").split("&")
@@ -140,6 +142,7 @@ def start_client(port):
     print("Escolha uma opção:")
     print("\n1 - login\n2 - signup\n")
     validate_choice()
+    
     threading.Thread(target=escutar, args=()).start()       
 
     while conectado: # tira desse while para resolver bug do CLIENTE DESCONECTAR E ENVIAR MSG MSM ASSIM  
@@ -148,9 +151,6 @@ def start_client(port):
              
      #
              
-
-
-    
 def login():
     user = input("\nUsuario: ")
     password = input("Senha: ")
