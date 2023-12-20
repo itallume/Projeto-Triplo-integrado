@@ -22,18 +22,57 @@ def start_client(port):
     print(f"Conectado ao servidor na porta {port}")
 
 
+    def set_intensity(assunto):   
+        try:
+            intensidade = int(input("Qual a intensidade? "))
+            assert intensidade in [1,2,3] and intensidade.isnumeric()
+        except Exception:
+            print("\nEscolha uma intensidade válida!\n")
+            return set_intensity(assunto) #talvez ocasione em bug
+
+        return client.send(f"type&undecided&{assunto}&{intensidade}".encode("utf-8"))
+
+
+    def set_assunto():
+        try:
+            assunto = input()
+            assert assunto.isalpha() and len(assunto) > 0
+        except Exception:
+            print("\nEscreva um assunto Válido!\n")
+            set_assunto()
+            
+        print("Escolha a intensidade:\n1: Baixa\n2: Média\n3: Alta")
+        return set_intensity(assunto)
+
+    def set_type():
+        try:
+            type = int(input("Escolha: "))
+        except Exception:
+            print("\nTente novamente, escolha uma opção válida\n")
+            return set_type()
+
+        if type == 1:   
+            print("Qual será o assunto? ")
+            return set_assunto()
+
+        if type == 2:
+            print("\nEsperando por um(a) Indeciso(a)...\n")
+            client.send(f"type&counselor".encode("utf-8"))
+
+
     def Validate_register():
         signup = signin()
         client.send(signup.encode("utf-8"))
         validate_signup = client.recv(1024).decode("utf-8")
         if validate_signup == "210":
-            print("\n", translate[validate_signup]) #Cadastro efetuado com Sucesso!
+            print("\n",translate[validate_signup]) #Cadastro efetuado com Sucesso!
         while validate_signup == "211": #while msm???
-            print("\n", translate[validate_signup])
+            print("\n",translate[validate_signup])
             print("Tente Novamente\n") #Nome de Usuario ja Existente, tente novamente!
             return Validate_register()
         
         print(f"Servidor: {validate_signup}")
+        print("1. Indeciso(a)\n2. Conselheiro")
         return set_type()
 
 
@@ -42,14 +81,15 @@ def start_client(port):
         client.send(log.encode("utf-8"))
         validate_login = client.recv(1024).decode("utf-8")
         if validate_login == "200":
-            print("\n", translate[validate_login]) #Login efetuado com Sucesso!
+            print("\n",translate[validate_login]) #Login efetuado com Sucesso!
 
         while validate_login == "201":
-            print("\n", translate[validate_login])
+            print("\n",translate[validate_login])
             print("Tente Novamente\n") #Login nao efetuado, Usuário ou Senha incorretos!
             return Validate_login()
         
         print(f"Servidor: {validate_login}")
+        print("1. Indeciso(a)\n2. Conselheiro")
         return set_type()
 
 
@@ -72,27 +112,6 @@ def start_client(port):
 
 
 
-    def set_type():
-        print("1. Indeciso(a)\n2. Conselheiro")
-
-        try:
-            type = int(input("Escolha: "))
-        except Exception:
-            print("Escolha inválida")
-            return set_type()
-
-        if type == 1:
-            assunto = input("Qual será o assunto? ")
-            intensidade = input("Qual a intensidade? ")
-
-            assert assunto != "" and intensidade != ""
-            assert intensidade in ["baixa", "média", "alta"]
-            assert type(assunto) == str and type(intensidade) == str
-
-            client.send(f"type&undecided&{assunto}&{intensidade}".encode("utf-8"))
-
-        if type == 2:
-            client.send(f"type&counselor".encode("utf-8"))
 
         
         
@@ -132,8 +151,14 @@ def login():
     return response
 
 def signin():
-    user = input("\nUsuario: ")
-    password = input("Senha: ")
+    try:
+        user = input("\nUsuario: ")
+        password = input("Senha: ")
+        assert len(password) >= 6
+        assert len(user) >= 3 len(user) <= 13
+    except Exception:
+        print("\nA senha deve conter 6 ou mais caracteres e o Usuario deve conter 3 ou mais caracteres!\n")
+        return signin()
     response = f"register {user} {password}"
     return response
     
