@@ -52,6 +52,8 @@ def start_client(port):
         try:
             assunto = input()
             assert len(assunto) > 0
+            if len(assunto) <= 3:
+                return set_assunto()
         except Exception:
             print("Escreva um assunto Válido!")
             set_assunto()
@@ -62,6 +64,8 @@ def start_client(port):
     def set_type():
         try:
             type = int(input("Escolha: "))
+            if type not in [1,2]:
+                return set_type()
         except Exception:
             print("\nTente novamente, escolha uma opção válida\n")
             return set_type()

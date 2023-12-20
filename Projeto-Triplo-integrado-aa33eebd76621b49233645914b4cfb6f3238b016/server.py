@@ -59,8 +59,8 @@ class Server:
                     # criar um while para o login e cadastro
                     if msg_client[0] == "login":   # fazer a tentativa maxima de 10 login por nome de usuário 
                         login = False   
-                        for i in range(10): 
-                            if i == 9:
+                        for i in range(99999): 
+                            if i < 999999:
                                 break                                                                 
                             if self.usersHashTable.contains(msg_client[1]):
                                     #retorna um objeto User
