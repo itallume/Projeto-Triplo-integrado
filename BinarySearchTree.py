@@ -86,24 +86,7 @@ class BinarySearchTree:
             return node.data if node is not None else None
         else:
             return None
-
-    def GetAndMajorOccurrences(self, key: any):
-        MajorOccurrences = []
-
-        if self.__root is not None:
-            self.__GetAndMajorOccurrences(key, self.__root, MajorOccurrences)
-
-        return MajorOccurrences if MajorOccurrences else None
-
-    def __GetAndMajorOccurrences(self, key: any, node: 'Node', MajorOccurrences: list):
         
-        if( node != None):
-            self.__GetAndMajorOccurrences(key, node.leftChild, MajorOccurrences)
-            if node.data >= key :
-                MajorOccurrences.append(node.data)
-            self.__GetAndMajorOccurrences(key, node.rightChild, MajorOccurrences)
-        
-
     def __searchData(self, key:any, node:'Node'):
         if ( key == node.data):
             return node
@@ -113,7 +96,45 @@ class BinarySearchTree:
             return self.__searchData( key, node.rightChild)
         else:
             return None
+        
+    def GetAndMajorOccurrences(self, key: any):  #retorna todos o valor inserido e todos os outros acima dele
+        MajorOccurrences = []
 
+        if self.__root is not None:
+            self.__MajorOccurrences(key, self.__root, MajorOccurrences)
+
+        return MajorOccurrences if MajorOccurrences else None        
+    
+    def __MajorOccurrences(self, key: any, node: 'Node', MajorOccurrences: list): # recursão do getAndMajorOccurrences, 
+                                                                                  #coleta os valores maiores condição de parada = não ter mais nenhum maior
+
+        if( node != None):
+            self.__MajorOccurrences(key, node.leftChild, MajorOccurrences)
+            if node.data >= key :
+                MajorOccurrences.append(node.data)
+            self.__MajorOccurrences(key, node.rightChild, MajorOccurrences)
+
+    def GetEqualOrMajor(self, key: any):#retorna key ou o maior, o primeiro valor que encontrar
+
+        if( self.__root != None ):
+            node = self.__EqualOrMajor(key, self.__root)
+            return node.data if node is not None else None
+        else:
+            return None
+    
+    def __EqualOrMajor(self, key, node): #recursão do getEqualOrMajor, condição de parada = encontrar key or >
+        if ( node.data >= key):
+            return node
+        elif ( key < node.data and node.leftChild != None):
+            return self.__EqualOrMajor( key, node.leftChild)
+        elif ( key > node.data and node.rightChild != None):
+            return self.__EqualOrMajor( key, node.rightChild)
+        else:
+            return None   
+                 
+
+
+        
     # Returns the number of nodes of the tree
     def count(self)->int:
         return self.__count(self.__root)
@@ -240,26 +261,27 @@ class BinarySearchTree:
             current = current.rightChild
   
         return current
+    
 
 if __name__ == '__main__':
     bst = BinarySearchTree()
 
     print('Adicionando os nós 17, 17, 76, 9, 14, 12, 54, 72 e 67 à arvore...')
 
-    bst.add(17)
-    bst.add(17)
+    bst.add(2)
+    bst.add(3)
     bst.add(9)
-    bst.add(14)
+    bst.add(4)
     bst.add(12)
-    bst.add(54)
-    bst.add(72)
-    bst.add(67)
-    bst.add(17)
+    bst.add(12)
+    bst.add(16)
+    bst.add(15)
+    bst.add(18)
     bst.add(80)
     bst.add(17)
 
 
-    print("todas ocorrencias:", bst.GetAndMajorOccurrences(17) )
+    print("todas ocorrencias:", bst.GetEqualOrMajor(17) )
     print("teste")
     # print('Consultando o nó raiz:')
     # print('Root:',bst.getRoot())

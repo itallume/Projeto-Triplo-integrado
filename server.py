@@ -13,12 +13,28 @@ class Server:
         self.adress = adress
         self.port = porta
         self.usersHashTable = ChainingHashTable(20)
-        self.chats = ChainingHashTable(20)
+        self.AllChats = ChainingHashTable(20)
         self.arvore = BinarySearchTree()
+        self.MinNote = None
+        self.Lock = threading.Lock()
         
+    def setDictionary(self):
+        """ Atribui ao atributo MinNote da classe o dicionário que
+            contém a nota minima para entrar em um chat
+            com base nas intensidades 1, 2 e 3.
+            Onde:
+                1 = Intensidade baixa 
+                2 = Intensidade média
+                3 = Intendsidade alta
+        """
+        self.MinNote = {
+            1: 0,
+            2: 3,
+            3: 6
+        }
         
     def start_server(self):
-        
+        self.setDictionary()
         clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clientSocket.bind(("0.0.0.0", self.port))
         clientSocket.listen()
@@ -84,16 +100,16 @@ class Server:
             msg_client = connection.recv(4096).decode("utf-8").split("&")
             if msg_client[0] == "type":
                 if msg_client[1] == "undecided":
-                    newChat = Chat(msg_client[2], msg_client[3])  # cria um objeto chat com o assunto e a intensidade
+                    newChat = Chat(msg_client[2], int(msg_client[3]))  # cria um objeto chat com o assunto e a intensidade
                     newChat.addOnChat(UserObject.nickname, connection) # adiciona o menbro no chat
                     chat = newChat
                         # usar lock
-                    self.chats.put(UserObject.nickname, newChat) # adicona o chat na ht de chats 
-                    threading.Thread(target= self.matchClients, args=()).start()
+                    self.AllChats.put(UserObject.nickname, newChat) # adicona o chat na ht de chats 
+                    threading.Thread(target= self.matchClients, args=(chat,)).start()
                     break
                 
                 if msg_client[1] == "counselor": 
-                    counselor = InfoCounselor(UserObject.nickname, connection, User.nota)
+                    counselor = InfoCounselor(UserObject.nickname, connection, UserObject.nota)
                     self.arvore.add(counselor)
                     # fazer as de solicitações de escolha de chat para o conselheiro 
                     while UserObject.chat is None:
@@ -114,8 +130,7 @@ class Server:
                         connection.close()
                         #PRECISA PARAR A THREAD
                     break
-        
-
+                
                 for participants in chat.getClients():
                     print("socket: ", participants)
                     participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
@@ -125,19 +140,34 @@ class Server:
                  
 
         
-    def matchClients(self):
-        while len(self.chats) != 0:
-            for chat in self.chats.values():
-                if chat.status == "ativo": continue
-                while len(self.arvore) == 0:
-                    time.sleep(0.2)
+    def matchClients(self, chat):
+        minNote = self.MinNote[chat.intensidade]
+        
+        while len(self.arvore) == 0:
+            time.sleep(0.2)
+            
+        minNote = InfoCounselor(None, None, minNote)
+        counselor = self.arvore.GetEqualOrMajor(minNote)
+        chat.addOnChat(counselor.nickname, counselor.socket)
+        self.usersHashTable.get(counselor.nickname).chat = chat
+        clients_socktes = chat.getClients()
+        for connection in clients_socktes:
+            connection.send(f"270&{chat.assunto}&{chat.intensidade}".encode('utf-8'))        
+        
+        # while len(self.AllChats) != 0:
+        #     for chat in self.AllChats.values():
+        #         if chat.status == "active": continue
                 
-                chat.addOnChat(self.arvore[0][0], self.arvore[0][1]) # fazer a busca na arvore de um um conselheiro 
-                chat_clients = chat.getClients()
-                chat.changeStatus()
-                self.usersHashTable.get(self.arvore[0][0]).chat = chat
-                for connection in chat_clients:
-                    connection.send(f"200&CONECTADO!\nASSUNTO DO CHAT: {chat.assunto}".encode('utf-8'))
+        #         while len(self.arvore) == 0:
+        #             time.sleep(0.2)
+                
+        #         self.arvore.GetAndMajorOccurrences()
+                
+        #         chat.addOnChat(self.arvore[0][0], self.arvore[0][1]) # fazer a busca na arvore de um um conselheiro 
+        #         chat_clients = chat.getClients()
+        #         chat.changeStatus()
+        #         self.usersHashTable.get(self.arvore[0][0]).chat = chat
+                
                 
     def login():
         return ('''

@@ -1,20 +1,23 @@
 class Chat:
-    def __init__(self, assunto, intensidade):
+    def __init__(self, assunto:str, intensidade:int):
         self.assunto = assunto
         self.intensidade = intensidade
         self.clients = []
-        self.status = "desconectado"
+        self.status = "desconected"
 
     def addOnChat(self, nickname, socket):
         self.clients.append([nickname, socket])
         
     def getClients(self):
-        return [self.clients[0][1], self.clients[1][1]]
+        usersOnChat = []
+        for user in self.clients:
+            usersOnChat.append(user[1])
+        return usersOnChat
     
     def changeStatus(self):
-        if self.status == "desconectado":
-            self.status = "ativo"
+        if self.status == "desconected":
+            self.status = "active"
         else:
-            self.status = "desconectado"
+            self.status = "desconected"
             
         return self.status
