@@ -4,6 +4,8 @@ class Chat:
         self.intensidade = intensidade
         self.clients = []
         self.status = "desconected"
+        self.Indeciso = None
+        self.conselheiro = None
 
     def addOnChat(self, nickname, socket):
         self.clients.append([nickname, socket])
@@ -11,7 +13,7 @@ class Chat:
     def getClients(self):
         usersOnChat = []
         for user in self.clients:
-            usersOnChat.append(user[1])
+            usersOnChat.append(user)
         return usersOnChat
     
     def changeStatus(self):

@@ -2,7 +2,6 @@ import socket
 import threading 
 import socket
 from threading import Thread
-import sys
 
 
 translate = {
@@ -28,33 +27,45 @@ def start_client(port):
     client.connect(("localhost", port))
     print(f"Conectado ao servidor na porta {port}")
 
-    def waitingConnection():    
-        while True:
-            response_server = client.recv(4096).decode("utf-8").split("&")
-            print(response_server)
-            if translate[response_server[0]] == "270":
-                print(translate[response_server[0]], f"Assunto: {response_server[1]} Intensidade: {response_server[2]}")
-            return
+    # def waitingConnection():    
+    #     while True:
+    #         try:
+    #             response_server = client.recv(4096).decode("utf-8").split("&")
+    #             print(response_server)
+    #             if response_server[0] == "250":  # Check if it's a disconnection message
+    #                 print(translate[response_server[0]])
+    #                 break
+    #             elif translate[response_server[0]] == "270":
+    #                 print(translate[response_server[0]], f"Assunto: {response_server[1]} Intensidade: {response_server[2]}")
+    #             else:
+    #                 print(response_server[1])
+    #         except ConnectionAbortedError:
+    #             print("Conexão encerrada pelo servidor.")
+    #         break
         
     def set_intensity(assunto):   
         while True:
             try:
                 intensidade = int(input("Intensidade: "))
-                assert intensidade in [1,2,3] # bug aqui PEDE MAIS DE UMA VEZ O MESMO INPUT CASO FOR ENVIADO INPUT INVALIDO<--------------------------------------
+                if intensidade not in [1, 2, 3]:
+                    return set_intensity(assunto)
                 break
+                
+
             except Exception:
                 print("\nEscolha uma intensidade válida (1, 2 ou 3)!\n")
-
-        return client.send(f"type&undecided&{assunto}&{intensidade}".encode("utf-8"))
+                return set_intensity(assunto)
+            
+        client.send(f"type&undecided&{assunto}&{intensidade}".encode("utf-8"))
 
 
     def set_assunto():
-        try:
-            assunto = input()
-            assert assunto.isalpha() and len(assunto) > 0
-        except Exception:
+
+        assunto = input()
+        if len(assunto) < 3:
             print("Escreva um assunto Válido!")
-            set_assunto()
+            return set_assunto()
+
             
         print("Escolha a intensidade:\n1: Baixa\n2: Média\n3: Alta")
         return set_intensity(assunto)
@@ -62,9 +73,13 @@ def start_client(port):
     def set_type():
         try:
             type = int(input("Escolha: "))
+            if type not in [1, 2]:
+                print("\nTente novamente, escolha uma opção válida\n")
+                return set_type()
         except Exception:
             print("\nTente novamente, escolha uma opção válida\n")
             return set_type()
+    
 
         if type == 1:   
             print("Qual será o assunto? ")
@@ -73,8 +88,8 @@ def start_client(port):
         if type == 2:
             print("\nEsperando por um(a) Indeciso(a)...\n")
             client.send(f"type&counselor".encode("utf-8"))
-            return waitingConnection()
-            
+            # return waitingConnection()
+            return
 
     def Validate_register():
         signup = signin()
@@ -118,6 +133,9 @@ def start_client(port):
         try:
             loginChoice = int(input("Opção: "))
         except Exception:
+            print("\nTente novamente, escolha uma opção válida\n")
+            return validate_choice()
+        while loginChoice not in [1,2]:
             print("Não foi possivel Logar, tente novamente")
             return validate_choice()
 
@@ -126,31 +144,40 @@ def start_client(port):
         elif loginChoice == 2:
             return Validate_register()
         
-    conectado = True
-    
-    def escutar(): #cuidado com o login e signup eu achava  qmeu codg tava errado
+
+
+
+
+
+
+    def escutar(client): #cuidado com o login e signup eu achava  qmeu codg tava errado
         while True:
             response_server = client.recv(4096).decode("utf-8").split("&")
-            if response_server!= "299":
-                    print(response_server[1])
-            else:
-                global conectado
-                conectado = False 
-                break
+
+            print(response_server)
+            # else:
+            #     global conectado
+            #     conectado = False 
+            #     break   
             
     print("\n\n=============Bem-Vindo ao Conselheiro Virtual!=============\n")
     print("Escolha uma opção:")
     print("\n1 - login\n2 - signup\n")
-    validate_choice()
     
-    threading.Thread(target=escutar, args=()).start()       
+    validate_choice()
+    conectado = True  
 
+    while True:
+        threading.Thread(target=escutar, args=(client,)).start()
+        break
+             
     while conectado: # tira desse while para resolver bug do CLIENTE DESCONECTAR E ENVIAR MSG MSM ASSIM  
             msg = input(">> ")
             client.send(f"msg&{msg}".encode("utf-8"))
-             
-     #
-             
+        
+    print("sai!")
+
+
 def login():
     user = input("\nUsuario: ")
     password = input("Senha: ")

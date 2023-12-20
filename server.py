@@ -13,7 +13,6 @@ class Server:
         self.adress = adress
         self.port = porta
         self.usersHashTable = ChainingHashTable(20)
-        self.AllChats = ChainingHashTable(20)
         self.arvore = BinarySearchTree()
         self.MinNote = None
         self.Lock = threading.Lock()
@@ -53,16 +52,16 @@ class Server:
         
     def clientComunication(self, connection):
         """Metodo que contem todos os meios de comunicação com o cliente"""
+        # try:
         while True:  
-                try:   
                     msg_client = connection.recv(4096).decode("utf-8").split(" ")
                     # criar um while para o login e cadastro
                     if msg_client[0] == "login":   # fazer a tentativa maxima de 10 login por nome de usuário 
-                        login = False   
-                        for i in range(10): 
+                        login = False                       
+                        for i in range(10):
                             if i == 9:
-                                break                                                                 
-                            if self.usersHashTable.contains(msg_client[1]):
+                                break                                       
+                        if self.usersHashTable.contains(msg_client[1]):
                                     #retorna um objeto User
                                 if self.usersHashTable.get(msg_client[1]).confirmPassword(msg_client[2]):  # com o metodo confirmPassword da classe User, faz a confirmação da senha
                                     connection.send("200".encode('utf-8')) # subtituir por codigos
@@ -73,19 +72,22 @@ class Server:
                                     connection.send("201".encode('utf-8'))  # subtituir por codigos
                                     msg_client = connection.recv(4096).decode("utf-8").split(" ")
                                     continue
-                            else:
-                                connection.send("201".encode('utf-8')) # subtituir por codigos
-                                msg_client = connection.recv(4096).decode("utf-8").split(" ") 
-                                continue
-                        if login == False:
+                        elif login == False:
                             connection.send("299".encode('utf-8')) #Enviar codigo
                             connection.close()
-                            return
+                        else:
+                            connection.send("201".encode('utf-8')) # subtituir por codigos
+                            msg_client = connection.recv(4096).decode("utf-8").split(" ") 
+                            continue
+                        
+                            
                         break
                     
-                 #Enviar codigo
+
+
+                 #viar codigo
                     if msg_client[0] == "register":   
-                                                             
+                                                            
                         if self.usersHashTable.contains(msg_client[1]): # verifica se já existe algum usuário com o nome de usuário desejado
                             print("teste")
                             connection.send("211".encode('utf-8')) # subtituir por codigos
@@ -98,25 +100,31 @@ class Server:
                         self.usersHashTable.displayTable()
                         print()
                         break
-             #Enviar codigo ABRE ABER ABRE ABRE manda paulo ir fazendo os SUPER COMENTARIOS AI DOCUEMNTACAO
-                except ConnectionResetError as e:
-                    print(f"Erro de conexão: {e}")
-                    connection.send("555".encode('utf-8')) #Enviar codigo
+
+
+        # except ConnectionAbortedError:
+        #     print(f"A conexão com {connection.getpeername()} foi encerrada.")
+
+                    
+
+                    
+                        
+                    
+
                     
                     
             
         while True:
-            try:
+
                 msg_client = connection.recv(4096).decode("utf-8").split("&")
                 if msg_client[0] == "type":
                     if msg_client[1] == "undecided":
                         newChat = Chat(msg_client[2], int(msg_client[3]))# cria um objeto chat com o assunto e a intensidade
                     
-                        newChat.addOnChat(UserObject.nickname, connection) # adiciona o menbro no chat
+                        newChat.addOnChat([UserObject.nickname, connection]) # adiciona o menbro no chat
+                        newChat.Indeciso = [UserObject.nickname, connection]
                         chat = newChat
-                            # usar lock
-                        with self.Lock:    
-                            self.AllChats.put(UserObject.nickname, newChat) # adicona o chat na ht de chats 
+                            # usar lock 
                         threading.Thread(target= self.matchClients, args=(chat,)).start()
                         break
                     
@@ -129,12 +137,11 @@ class Server:
                             time.sleep(0.2)
                         chat = UserObject.chat # mandar a solicitação de chat aqui
                         break
-            except ConnectionResetError as e:
-                print(f"Erro de conexão: {e}")
-                connection.send("555".encode('utf-8')) #Enviar codigo
+                    
+
                 
         while True: 
-            try:
+
                 msg_client = connection.recv(4096).decode("utf-8").split("&") # receber a mensagem do cliente e separar o comando do texto
                 print(msg_client) 
              #Enviar codigo
@@ -142,52 +149,49 @@ class Server:
                 if msg_client[0] == "msg":
 
                     if msg_client[1].lower() == 'exit':
-                        print("Desconectado")
+                
+                        UserObject.chat.indeciso[1].send("255".encode('utf-8'))
+                        msg_client = connection.recv(4096).decode("utf-8").split("&")
+                        UserObject.chat.conselheiro.nota = msg_client[1]
+                        
                         response = '250'
                         for participants in chat.getClients():
-                            participants.send(response.encode('utf-8')) #talvez cause bug
+                            participants[1].send(response.encode('utf-8')) #talvez cause bug
                             connection.close()
-                            #PRECISA PARAR A THREAD
                         break
                     
                     for participants in chat.getClients():
-                        print("socket: ", participants)
+                        if connection == participants:
+                            continue
                         participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
                         
-            except ConnectionResetError as e:
-                print(f"Erro de conexão: {e}")
-                connection.send("555".encode('utf-8'))        
         
     def matchClients(self, chat):
+        """ Faz a procura do conselheiro que atenda 
+            ao requisito de nota minima para, o adicionando
+            no chat e removendo.
+        """
         minNote = self.MinNote[chat.intensidade]
         
         while len(self.arvore) == 0:
             time.sleep(0.2)
             
-        minNote = InfoCounselor(None, None, minNote)
+        minNote = InfoCounselor(None, None, minNote)  # emcapsulando a nota
+        counselor = self.arvore.GetEqualOrMajor(minNote)  # obtendo o conselheiro
+        chat.conselheiro = [counselor.nickname, counselor.socket] # o definindo como conselheiro do chat
         
-        counselor = self.arvore.GetEqualOrMajor(minNote)
         with self.Lock:
-            print(self.arvore.deleteNode(counselor).nickname)
-        chat.addOnChat(counselor.nickname, counselor.socket)
-        self.usersHashTable.get(counselor.nickname).chat = chat
-        clients_socktes = chat.getClients()
+            self.arvore.deleteNode(counselor).nickname # remove da arvore
+
+        chat.addOnChat(counselor.nickname, counselor.socket) # adiciona na lista do chat
+
+        self.usersHashTable.get(counselor.nickname).chat = chat # joga o obejeto chat dentro do objeto dos participantes
+        self.usersHashTable.get(chat.Indeciso[0]).chat = chat
+
+        clients_socktes = chat.getClients() #manda mensagem para todos do chat informando a conecção
         for connection in clients_socktes:
-            connection.send(f"270&{chat.assunto}&{chat.intensidade}".encode('utf-8'))        
+            connection[1].send(f"270&{chat.assunto}&{chat.intensidade}".encode('utf-8'))        
         return
-        # while len(self.AllChats) != 0:
-        #     for chat in self.AllChats.values():
-        #         if chat.status == "active": continue
-                
-        #         while len(self.arvore) == 0:
-        #             time.sleep(0.2)
-                
-        #         self.arvore.GetAndMajorOccurrences()
-                
-        #         chat.addOnChat(self.arvore[0][0], self.arvore[0][1]) # fazer a busca na arvore de um um conselheiro 
-        #         chat_clients = chat.getClients()
-        #         chat.changeStatus()
-        #         self.usersHashTable.get(self.arvore[0][0]).chat = chat
                 
                 
     def login():
