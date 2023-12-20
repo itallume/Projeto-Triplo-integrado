@@ -131,7 +131,7 @@ def start_client(port):
     def escutar(): #cuidado com o login e signup eu achava  qmeu codg tava errado
         while True:
             response_server = client.recv(4096).decode("utf-8").split("&")
-            if response_server[0] != "250":
+            if response_server!= "299":
                     print(response_server[1])
             else:
                 global conectado
