@@ -87,25 +87,25 @@ class BinarySearchTree:
         else:
             return None
 
-    def GetAlloccurrences(self, key:any ):
-        AllOccurrences = []
+    def GetAndMajorOccurrences(self, key:any ):
+        MajorOccurrnces = []
         if( self.__root != None ):
-            node = self.__GetOccurrences(key, self.__root, AllOccurrences)
-            return AllOccurrences if len(AllOccurrences) > 0 else None
+            node = self.__GetMajorOccurrences(key, self.__root, MajorOccurrnces)
+            return MajorOccurrnces if len(MajorOccurrnces) > 0 else None
         else:
             return None
 
-    def __GetOccurrences(self, key:any, node:'Node', AllOccurrences:list):
+    def __GetMajorOccurrences(self, key:any, node:'Node', MajorOccurrnces:list):
+        if node == N
+        if ( key == node.data    MajorOccurrnces.append(node.data)
+            return self.__GetMajorOccurrences( key, node.rightChild, MajorOccurrnces)
+        elif ( key < node.data and node.l
+        eftChild != None):
+            return self.__GetMajorOccurrences( key, node.leftChild, MajorOccurrnces)
+        if key > node.data and node.rightChild != None:
+            MajorOccurrnces.append(node.data)
+            return self.__GetMajorOccurrences( key, node.rightChild, MajorOccurrnces)
         
-        if ( key == node.data):
-            AllOccurrences.append(node.data)
-            
-        elif ( key < node.data and node.leftChild != None):
-            return self.__GetOccurrences( key, node.leftChild, AllOccurrences)
-        if key >= node.data and node.rightChild != None:
-            return self.__GetOccurrences( key, node.rightChild, AllOccurrences)
-        else:
-            return None
 
     def __searchData(self, key:any, node:'Node'):
         if ( key == node.data):
@@ -261,7 +261,8 @@ if __name__ == '__main__':
     bst.add(17)
 
 
-    print("todas ocorrencias:", bst.GetAlloccurrences(17) )
+    print("todas ocorrencias:", bst.GetAndMajorOccurrences(17) )
+    print("teste")
     # print('Consultando o nó raiz:')
     # print('Root:',bst.getRoot())
 
