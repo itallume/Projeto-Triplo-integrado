@@ -1,18 +1,19 @@
 import socket
 import threading 
 translate = {
-    "210": "cadastro efetuado",
+    "210": "Cadastro efetuado",
     "211": "Nome de usuário já existente",
     "200": "login efetuado", 
-    "201": "Usuário ou senha errado",
+    "201": "Usuário ou senha incorreto",
     "220": "Tipo setado",
     "221": "Tipo inexistente",
     "230": "Tema definido",
     "231": "Intensidade inexistente", 
-    "240": "comunicação feita",
+    "240": "Comunicação feita",
     "250": "Desconectado",
-    "260": "nota apurada",
+    "260": "Nota apurada",
     "261": "Nota inválida",
+    "299": "Muitas tentativas de login",
 
 }
 
@@ -23,12 +24,13 @@ def start_client(port):
 
 
     def set_intensity(assunto):   
-        try:
-            intensidade = int(input("Qual a intensidade? "))
-            assert intensidade in [1,2,3] and intensidade.isnumeric()
-        except Exception:
-            print("\nEscolha uma intensidade válida!\n")
-            return set_intensity(assunto) #talvez ocasione em bug
+        while True:
+            try:
+                intensidade = int(input("Intensidade: "))
+                assert intensidade in [1,2,3] # bug aqui PEDE MAIS DE UMA VEZ O MESMO INPUT CASO FOR ENVIADO INPUT INVALIDO<--------------------------------------
+                break
+            except Exception:
+                print("\nEscolha uma intensidade válida (1, 2 ou 3)!\n")
 
         return client.send(f"type&undecided&{assunto}&{intensidade}".encode("utf-8"))
 
@@ -38,7 +40,7 @@ def start_client(port):
             assunto = input()
             assert assunto.isalpha() and len(assunto) > 0
         except Exception:
-            print("\nEscreva um assunto Válido!\n")
+            print("Escreva um assunto Válido!")
             set_assunto()
             
         print("Escolha a intensidade:\n1: Baixa\n2: Média\n3: Alta")
@@ -59,6 +61,9 @@ def start_client(port):
             print("\nEsperando por um(a) Indeciso(a)...\n")
             client.send(f"type&counselor".encode("utf-8"))
 
+    def disconnected():
+        print("Você foi desconectado!")
+        return client.close()
 
     def Validate_register():
         signup = signin()
@@ -82,6 +87,11 @@ def start_client(port):
         validate_login = client.recv(1024).decode("utf-8")
         if validate_login == "200":
             print("\n",translate[validate_login]) #Login efetuado com Sucesso!
+        
+        if validate_login == "299": # 
+            print("Voce foi desconectado!!")
+            print("\n",translate[validate_login])
+            return disconnected()
 
         while validate_login == "201":
             print("\n",translate[validate_login])
@@ -155,7 +165,7 @@ def signin():
         user = input("\nUsuario: ")
         password = input("Senha: ")
         assert len(password) >= 6
-        assert len(user) >= 3 len(user) <= 13
+        assert len(user) >= 3 and len(user) <= 13
     except Exception:
         print("\nA senha deve conter 6 ou mais caracteres e o Usuario deve conter 3 ou mais caracteres!\n")
         return signin()

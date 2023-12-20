@@ -86,7 +86,14 @@ class BinarySearchTree:
             return node.data if node is not None else None
         else:
             return None
-    
+
+    def search(self, key:any ):
+        if( self.__root != None ):
+            node = self.__searchData(key, self.__root)
+            return node.data if node is not None else None
+        else:
+            return None
+
     def __searchData(self, key:any, node:'Node'):
         if ( key == node.data):
             return node
@@ -227,10 +234,10 @@ class BinarySearchTree:
 if __name__ == '__main__':
     bst = BinarySearchTree()
 
-    print('Adicionando os nós 50, 17, 76, 9, 14, 12, 54, 72 e 67 à arvore...')
+    print('Adicionando os nós 17, 17, 76, 9, 14, 12, 54, 72 e 67 à arvore...')
 
     bst.add(17)
-    bst.add(76)
+    bst.add(17)
     bst.add(9)
     bst.add(14)
     bst.add(12)

@@ -1,16 +1,20 @@
 import socket
 import threading
 from ChainingHashTableProblema import ChainingHashTable
+from BinarySearchTree import BinarySearchTree
 from User import User
 from Chat import Chat
 import time
+from InfoCounselor import InfoCounselor
+
+
 class Server:
     def __init__(self, adress:str , porta:int):
         self.adress = adress
         self.port = porta
         self.usersHashTable = ChainingHashTable(20)
         self.chats = ChainingHashTable(20)
-        self.arvore = []
+        self.arvore = BinarySearchTree()
         
         
     def start_server(self):
@@ -36,7 +40,8 @@ class Server:
             
             msg_client = connection.recv(4096).decode("utf-8").split(" ")
             # criar um while para o login e cadastro
-            if msg_client[0] == "login":   # fazer a tentativa maxima de 10 login por nome de usuário    
+            if msg_client[0] == "login":   # fazer a tentativa maxima de 10 login por nome de usuário 
+                login = False   
                 for i in range(10): 
                     if i == 9:
                         break                                                                 
@@ -48,18 +53,20 @@ class Server:
                             login = True
                             break
                         else:
-                            connection.send("Usuário ou senha incorreto. 2".encode('utf-8'))  # subtituir por codigos
+                            connection.send("201".encode('utf-8'))  # subtituir por codigos
                             msg_client = connection.recv(4096).decode("utf-8").split(" ") 
                             continue
                     else:
-                        connection.send("Usuário ou senha incorreto. 1".encode('utf-8')) # subtituir por codigos
+                        connection.send("201".encode('utf-8')) # subtituir por codigos
                         msg_client = connection.recv(4096).decode("utf-8").split(" ") 
                         continue
-                if login:
-                    connection.send("muitas tentativas de login, tente mais tarde".encode('utf-8'))
+                    
+                if login == False:
+                    connection.send("299".encode('utf-8')) #Enviar codigo
                     connection.close()
                     return
                 break
+
             if msg_client[0] == "register":   
                                                                                        
                 if self.usersHashTable.contains(msg_client[1]): # verifica se já existe algum usuário com o nome de usuário desejado
@@ -85,12 +92,13 @@ class Server:
                     threading.Thread(target= self.matchClients, args=()).start()
                     break
                 
-                if msg_client[1] == "counselor":    
-                    self.arvore.append([UserObject.nickname, connection])
+                if msg_client[1] == "counselor": 
+                    counselor = InfoCounselor(UserObject.nickname, connection, User.nota)
+                    self.arvore.add(counselor)
                     # fazer as de solicitações de escolha de chat para o conselheiro 
                     while UserObject.chat is None:
                         time.sleep(0.2)
-                    chat = UserObject.chat
+                    chat = UserObject.chat # mandar a solicitação de chat aqui
                     break
         
         while True: 
@@ -123,6 +131,7 @@ class Server:
                 if chat.status == "ativo": continue
                 while len(self.arvore) == 0:
                     time.sleep(0.2)
+                
                 chat.addOnChat(self.arvore[0][0], self.arvore[0][1]) # fazer a busca na arvore de um um conselheiro 
                 chat_clients = chat.getClients()
                 chat.changeStatus()
