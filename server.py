@@ -60,7 +60,7 @@ class Server:
                     if msg_client[0] == "login":   # fazer a tentativa maxima de 10 login por nome de usuário 
                         login = False   
                         for i in range(99999): 
-                            if i < 999999:
+                            if i > 9999:
                                 break                                                                 
                             if self.usersHashTable.contains(msg_client[1]):
                                     #retorna um objeto User
@@ -78,9 +78,8 @@ class Server:
                                 msg_client = connection.recv(4096).decode("utf-8").split(" ") 
                                 continue
                         if login == False:
-                            connection.send("299".encode('utf-8')) #Enviar codigo
-                            connection.close()
-                            return
+                            connection.send("299".encode('utf-8'))
+                            continue
                         break
                     
                  #Enviar codigo

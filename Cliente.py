@@ -104,9 +104,8 @@ def start_client(port):
             print("\n",translate[validate_login]) #Login efetuado com Sucesso!
         
         if validate_login == "299": # 
-            print("Voce foi desconectado!!")
             print("\n",translate[validate_login])
-            return
+            return Validate_login()
 
         while validate_login == "201":
             print("\n",translate[validate_login])
