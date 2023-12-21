@@ -86,7 +86,6 @@ class Server:
                     if msg_client[0] == "register":   
                                                              
                         if self.usersHashTable.contains(msg_client[1]): # verifica se já existe algum usuário com o nome de usuário desejado
-                            print("teste")
                             connection.send("211".encode('utf-8')) # subtituir por codigos
                             continue
                         
@@ -174,35 +173,7 @@ class Server:
         for connection in clients_socktes:
             connection.send(f"270&{chat.assunto}&{chat.intensidade}".encode('utf-8'))        
         return
-        # while len(self.AllChats) != 0:
-        #     for chat in self.AllChats.values():
-        #         if chat.status == "active": continue
                 
-        #         while len(self.arvore) == 0:
-        #             time.sleep(0.2)
-                
-        #         self.arvore.GetAndMajorOccurrences()
-                
-        #         chat.addOnChat(self.arvore[0][0], self.arvore[0][1]) # fazer a busca na arvore de um um conselheiro 
-        #         chat_clients = chat.getClients()
-        #         chat.changeStatus()
-        #         self.usersHashTable.get(self.arvore[0][0]).chat = chat
-                
-                
-    def login():
-        return ('''
-            1 - Login
-            2 - Signup    
-        ''')    
-
-        
-    def menu():
-        return('''
-            Menu:
-            1 - Receber conselhos (aconselhado)
-            2 - Enviar conselhos (conselheiro)
-            3 - Ver conselhos anteriores
-            ''')
 
 
 servidor = Server("0.0.0.0", 12345)
