@@ -12,6 +12,7 @@ class Client:
         self.CodesTranslate = None
         self.conected = False
         self.lock = threading.Lock()
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
     def setDict(self):
@@ -35,15 +36,14 @@ class Client:
     }
 
     def start_client(self):
-        ServerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ServerSocket.connect((self.host, self.port))
+        self.sock.connect((self.host, self.port))
         print(f"Conectado ao servidor na porta {self.port}")
         print("\n\n=============Bem-Vindo ao Conselheiro Virtual!=============\n")
         print("Escolha uma opção:")
         print("\n1 - login\n2 - signup\n")
-        self.validate_choice(ServerSocket)
+        self.validate_choice()
 
-    def validate_choice(self, ServerSocket):
+    def validate_choice(self):
         try:
             loginChoice = int(input("Opção: "))
         except Exception:
@@ -51,130 +51,146 @@ class Client:
             return self.validate_choice()
 
         if loginChoice == 1:
-            return self.Validate_login(ServerSocket)
+            self.Validate_login()
         elif loginChoice == 2:
-            return self.Validate_register(ServerSocket)
+            self.Validate_register()
 
-    def Validate_login(self, ServerSocket):
+    def Validate_login(self):
         log = self.login()
-        ServerSocket.send(log.encode("utf-8"))
-        validate_login = ServerSocket.recv(1024).decode("utf-8")
-        if validate_login == "200":
-            print("\n",self.CodesTranslate[validate_login]) #Login efetuado com Sucesso!
+        self.sock.send(log.encode("utf-8"))
+        validate_login = self.sock.recv(1024).decode("utf-8").split(" ")
+        if validate_login[0] == "200": #translate bug 
+            print(validate_login) #Login efetuado com Sucesso!
         
-        if validate_login == "299": # 
-            print("\n",self.CodesTranslate[validate_login])
-            return self.Validate_login(ServerSocket)
+        if validate_login[0] == "299": #<---------#ranslate bug 
+            print(validate_login)
+            self.Validate_login()
 
-        while validate_login == "201":
-            print("\n",self.CodesTranslate[validate_login])
+        while validate_login[0] == "201":
+            print(validate_login) #translate bug 
             print("Tente Novamente\n") #Login nao efetuado, Usuário ou Senha incorretos!
-            return self.Validate_login(ServerSocket)
+            self.Validate_login()
         
         print(f"Servidor: {validate_login}")
         print("1. Indeciso(a)\n2. Conselheiro")
-        return self.set_type()
+        self.set_type()
 
-    def Validate_register(self, ServerSocket):
+    def Validate_register(self):
         signup = self.signin()
-        ServerSocket.send(signup.encode("utf-8"))
-        validate_signup = ServerSocket.recv(4096).decode("utf-8")
-        if validate_signup == "210":
-            print("\n",self.CodesTranslate[validate_signup]) #Cadastro efetuado com Sucesso!
-        while validate_signup == "211": #while msm???
-            print("\n",self.CodesTranslate[validate_signup])
+        self.sock.send(signup.encode("utf-8"))
+        validate_signup = self.sock.recv(4096).decode("utf-8").split(" ")
+        if validate_signup[0] == "210":
+            print("\n",self.CodesTranslate[validate_signup[0]]) #Cadastro efetuado com Sucesso!
+            
+        while validate_signup[0] == "211": #while msm???
+            print("\n",self.CodesTranslate[validate_signup[0]])
             print("Tente Novamente\n") #Nome de Usuario ja Existente, tente novamente!
-            return self.Validate_register(ServerSocket)
+            self.Validate_register()
         
         print(f"Servidor: {validate_signup}")
-        print("1. Indeciso(a)\n2. Conselheiro")
-        return self.set_type()
+        print("1. Indeciso(a)\n2. Conselheiro(a)")
+        self.set_type(validate_signup)
 
-    def set_type(self, ServerSocket):
+    def set_type(self, validate_signup):
         try:
             type = int(input("Escolha: "))
             if type not in [1,2]:
-                return self.set_type(ServerSocket)
+                self.set_type(validate_signup)
         except Exception:
             print("\nTente novamente, escolha uma opção válida\n")
-            return self.set_type(ServerSocket)
+            self.set_type(validate_signup)
 
         if type == 1:   
             print("Qual será o assunto? ")
-            return self.set_assunto(ServerSocket)
+            self.set_assunto()
 
         if type == 2:
             print("\nEsperando por um(a) Indeciso(a)...\n")
-            ServerSocket.send(f"type&counselor".encode("utf-8"))
-            return self.waitingConnection()
+            self.sock.send(f"type&counselor".encode("utf-8"))
+            response_server = self.sock.recv(4096).decode("utf-8").split("&")
+            self.waitingConnection(response_server)
 
-    def set_assunto(self, ServerSocket):
+    def set_assunto(self):
         try:
-            assunto = input(ServerSocket)
+            assunto = input()
             assert len(assunto) > 0
             if len(assunto) <= 3:
-                return self.set_assunto(ServerSocket)
+                self.set_assunto()
         except Exception:
             print("Escreva um assunto Válido!")
-            self.set_assunto(ServerSocket)
+            self.set_assunto()
             
         print("Escolha a intensidade:\n1: Baixa\n2: Média\n3: Alta")
-        return self.set_intensity(assunto, ServerSocket)
+        self.set_intensity(assunto)
 
-    def set_intensity(self, assunto, ServerSocket):   
+    def set_intensity(self, assunto):   
         while True:
             try:
                 intensidade = int(input("Intensidade: "))
-                assert intensidade in [1,2,3] # bug aqui PEDE MAIS DE UMA VEZ O MESMO INPUT CASO FOR ENVIADO INPUT INVALIDO<--------------------------------------
-                break
+                
+                 # bug aqui PEDE MAIS DE UMA VEZ O MESMO INPUT CASO FOR ENVIADO INPUT INVALIDO<--------------------------------------
+                self.sock.send(f"type&undecided&{assunto}&{intensidade}".encode("utf-8"))
+                response_server = self.sock.recv(4096).decode("utf-8").split("&")
+                print("linha 132", response_server)
+                if response_server[0] == "231":
+                    print(self.CodesTranslate[response_server[0]])
+                    self.set_intensity(assunto, self.sock)
+                else:
+                    print("aqui")
+                    self.waitingConnection(response_server)
             except Exception:
                 print("\nEscolha uma intensidade válida (1, 2 ou 3)!\n")
 
-        return ServerSocket.send(f"type&undecided&{assunto}&{intensidade}".encode("utf-8"))
+    def waitingConnection(self, response_server):   
 
-    def waitingConnection(self, ServerSocket):    
-        while True:
-            response_server = ServerSocket.recv(4096).decode("utf-8").split("&")
-            print(response_server)
-            if self.CodesTranslate[response_server[0]] == "270":
-                print(self.CodesTranslate[response_server[0]], f"Assunto: {response_server[1]} Intensidade: {response_server[2]}")
+        if response_server[0] == "270":
+            print(response_server[0], f"Assunto: {response_server[1]} Intensidade: {response_server[2]}")
+            self.conected = True
+            print("Chat iniciado!")
+            threading.Thread(target=self.escutar, args=()).start()
+            self.DigitOnchat()
             
-            threading.Thread(target=self.escutar, args=(ServerSocket)).start()
-            
-    def escutar(self, ServerSocket):
+    def escutar(self):
         while True:
-            response_server = ServerSocket.recv(4096).decode("utf-8").split("&")
+            response_server = self.sock.recv(4096).decode("utf-8").split("&")
             if response_server[0] != "250":
                 print(response_server[1])
             else:
-                
+                print("VOCE FOI DESCONECTADO!!!")
                 self.conected = False 
                 break
             
-    def DigitOnchat(self, ServerSocket):
+    def DigitOnchat(self):
         while self.conected: # tira desse while para resolver bug do ServerSocketE DESCONECTAR E ENVIAR MSG MSM ASSIM  
                 msg = input(">> ")
-                ServerSocket.send(f"msg&{msg}".encode("utf-8"))
+                self.sock.send(f"msg&{msg}".encode("utf-8"))
 
-    def login(self):
-        user = input("\nUsuario: ")
-        password = input("Senha: ")
-        response = f"login {user} {password}"
-        return response
+    def login(self): 
+        while True:
+            try:
+                user = input("\nUsuario: ")
+                password = input("Senha: ")
+                response = f"login {user} {password}"
+                return response
+            except Exception:
+                
+                break
+
+        
 
     def signin(self):
         try:
             user = input("\nUsuario: ")
             password = input("Senha: ")
             assert len(password) >= 6
-            assert len(user) >= 3 and len(user) <= 13
+            assert len(user) > 0 and len(user) <= 20
         except Exception:
-            print("\nA senha deve conter 6 ou mais caracteres e o Usuario deve conter 3 ou mais caracteres!\n")
+            print("\nA senha deve conter 6 ou mais caracteres e o Usuario deve conter 1 ou mais caracteres!\n")
             return self.signin()
         response = f"register {user} {password}"
         return response
 
 
 client = Client("localhost", 12345)
-
+client.setDict() #atribuir valores do dicionário
 client.start_client()

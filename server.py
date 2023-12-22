@@ -59,8 +59,8 @@ class Server:
                     # criar um while para o login e cadastro
                     if msg_client[0] == "login":   # fazer a tentativa maxima de 10 login por nome de usuário 
                         login = False   
-                        for i in range(99999): 
-                            if i > 9999:
+                        for i in range(6): 
+                            if i > 4:
                                 break                                                                 
                             if self.usersHashTable.contains(msg_client[1]):
                                     #retorna um objeto User
@@ -104,19 +104,22 @@ class Server:
                     
             
         while True:
-            try:
                 msg_client = connection.recv(4096).decode("utf-8").split("&")
+                
                 if msg_client[0] == "type":
+                    print(msg_client)
                     if msg_client[1] == "undecided":
-                        newChat = Chat(msg_client[2], int(msg_client[3]))# cria um objeto chat com o assunto e a intensidade
-                    
-                        newChat.addOnChat(UserObject.nickname, connection) # adiciona o menbro no chat
-                        chat = newChat
-                            # usar lock
-                        with self.Lock:    
-                            self.AllChats.put(UserObject.nickname, newChat) # adicona o chat na ht de chats 
-                        threading.Thread(target= self.matchClients, args=(chat,)).start()
-                        break
+                        print(msg_client)
+                        if msg_client[3] in ["1","2","3"]:
+                            newChat = Chat(msg_client[2], int(msg_client[3]))# cria um objeto chat com o assunto e a intensidad 
+                            newChat.addOnChat(UserObject.nickname, connection) # adiciona o menbro no chat
+                            chat = newChat
+                            # usar lock 
+                            threading.Thread(target= self.matchClients, args=(chat,)).start()
+                            print
+                            break
+                        else:
+                            connection.send("301".encode('utf-8'))
                     
                     if msg_client[1] == "counselor": 
                         counselor = InfoCounselor(UserObject.nickname, connection, UserObject.nota)
@@ -127,9 +130,9 @@ class Server:
                             time.sleep(0.2)
                         chat = UserObject.chat # mandar a solicitação de chat aqui
                         break
-            except ConnectionResetError as e:
-                print(f"Erro de conexão: {e}")
-                connection.send("555".encode('utf-8')) #Enviar codigo
+            # except ConnectionResetError as e:
+            #     print(f"Erro de conexão: {e}")
+            #     connection.send("555".encode('utf-8')) #Enviar codigo
                 
         while True: 
             try:
@@ -140,21 +143,25 @@ class Server:
                 if msg_client[0] == "msg":
 
                     if msg_client[1].lower() == 'exit':
-                        print("Desconectado")
+                        print(f"Desconectado: {UserObject.nickname}")
+                        
                         response = '250'
                         for participants in chat.getClients():
                             participants.send(response.encode('utf-8')) #talvez cause bug
                             connection.close()
-                            #PRECISA PARAR A THREAD
-                        break
-                    
-                    for participants in chat.getClients():
-                        print("socket: ", participants)
-                        participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
-                        
+                             #PRECISA PARAR A THREAD
+                            break
+                    else:
+                        for participants in chat.getClients():
+                            print("socket: ", participants)
+                            participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
+                         
             except ConnectionResetError as e:
                 print(f"Erro de conexão: {e}")
-                connection.send("555".encode('utf-8'))        
+                connection.send("555".encode('utf-8'))  
+        # dar a nota caso seja o indeciso  
+        
+            #fecha conexao <_-----------------------------------------
         
     def matchClients(self, chat):
         minNote = self.MinNote[chat.intensidade]

@@ -1,5 +1,6 @@
 # Implementação de HashTable com tratamento de colisão por encadeamento
 # Autor: Alex Sandro
+
 from typing import List
 from ListaEncadeadaOrdenada import Lista
 class AbsentKeyException(Exception):
