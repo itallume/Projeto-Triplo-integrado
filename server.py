@@ -114,6 +114,7 @@ class Server:
                             newChat = Chat(msg_client[2], int(msg_client[3]))# cria um objeto chat com o assunto e a intensidad 
                             newChat.addOnChat(UserObject.nickname, connection) # adiciona o menbro no chat
                             chat = newChat
+                            chat.ind
                             # usar lock 
                             threading.Thread(target= self.matchClients, args=(chat,)).start()
                             print
@@ -147,7 +148,7 @@ class Server:
                         
                         response = '250'
                         for participants in chat.getClients():
-                            participants.send(response.encode('utf-8')) #talvez cause bug
+                            participants.send(f"txt&{response}".encode('utf-8')) #talvez cause bug
                             connection.close()
                              #PRECISA PARAR A THREAD
                             break
