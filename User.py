@@ -5,8 +5,7 @@ class User:
         self.__soma_notas = 10  # inicia com 10
         self.__quantidade_de_notas = 0
         self.__nota = 10
-        self.__chat = None #ISSO É PROVISÓRIO, APENAS PARA TESTE
-        self.__status = "Offline"
+        self.__chat = None 
         
     @property
     def nickname(self):
@@ -32,18 +31,11 @@ class User:
         self.__soma_notas += new_nota
         self.__quantidade_de_notas += 1
         self.__nota = self.__soma_notas / self.__quantidade_de_notas 
+        return self.__nota
 
     def confirmPassword(self, password):
         if password == self.__password:
             return True
-
-    def ChangeStatus(self):
-        if self.__status == "Online":
-            self.__status = "Offline"
-            return self.__status
-        
-        self.__status = "Online"
-        return self.__status
         
     def __eq__(self, outroObjeto):
         '''Método que vai possibilitar comparar chaves quando a chave for um objeto de outra classe'''

@@ -130,10 +130,9 @@ class Server:
                             newChat = Chat(msg_client[2], int(msg_client[3]))# cria um objeto chat com o assunto e a intensidad 
                             newChat.addOnChat(UserObject.nickname, connection) # adiciona o menbro no chat
                             chat = newChat
-                            chat.Indeciso = [UserObject.nickname, connection]
+                            connection.send("220".encode('utf-8'))
                             # usar lock 
                             threading.Thread(target= self.matchClients, args=(chat, UserObject)).start()
-                            print
                             break
                         else:
                             connection.send("301".encode('utf-8'))
@@ -147,32 +146,50 @@ class Server:
                             time.sleep(0.2)
                         chat = UserObject.chat # mandar a solicitação de chat aqui
                         break
-                
-        while True: 
-            try:
+        try:        
+            while True: 
+            
                 msg_client = connection.recv(4096).decode("utf-8").split("&") # receber a mensagem do cliente e separar o comando do texto
                 print(msg_client) 
              #Enviar codigo
             
                 if msg_client[0] == "msg":
                     if msg_client[1].lower() == 'exit':
-                        print(f"Desconectado: {UserObject.nickname}")
+                        
                         response = '250'
-                        for participants in chat.getClients():
+                        # Desconectando o conselheiro para que o indeciso possa dar a nota com privacidade
+                        Clients_sockets = chat.getClients()
+                        Clients_sockets[1][1].send(f"{response}".encode('utf-8')) # Socket do conselheiro
+                        Clients_sockets[1][1].close()                  
+                        with self.Lock:
+                                self.OnlineUsers.remove(Clients_sockets[1][0])
+                                
+                        if not connection == Clients_sockets[1][1]:        
+                            while True: #periodo de comunicação com apenas o indeciso para obtenlção da nota
+                                Clients_sockets[0][1].send("260".encode('utf-8'))
+                                msg_client = connection.recv(4096).decode("utf-8").split("&")
+                                try:
+                                    if int(msg_client[1]) and int(msg_client[1]) >= 0 and int(msg_client[1]) <= 10:                     
+                                        Clients_sockets[0][1].send(f"262".encode('utf-8'))
+                                        print("Nota adicionada, nova nota do Conselheiro:",self.usersHashTable(Clients_sockets[1][0]).addNota(int(msg_client[1])))
+                                        break
+                                except:
+                                    continue
                             with self.Lock:
-                                self.OnlineUsers.remove(participants[0])
-                            participants[1].send(f"txt&{response}".encode('utf-8')) #talvez cause bug
+                                self.OnlineUsers.remove(Clients_sockets[0][0])
+                            Clients_sockets[0][1].send(f"{response}".encode('utf-8')) # Socket do indeciso
                             connection.close()
-                        break
+                            break
+                        else:
+                            print("estive aqui")
+                            break
                     
                     else:
                         for participants in chat.getClients():
-                            
-                            participants[1].send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
-                        
-            except ConnectionResetError as e:
-                print("Ouve um erro na conecção!")
-                 
+                            participants[1].send(f"{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
+
+        except ConnectionResetError:
+            print("Conecção encerrada.")
                 
         
     def matchClients(self, chat, UserObject):
@@ -198,7 +215,6 @@ class Server:
         clients_socktes = chat.getClients()
         for connection in clients_socktes:
             connection[1].send(f"270&{chat.assunto}&{chat.intensidade}".encode('utf-8'))        
-        return
                 
 
 
