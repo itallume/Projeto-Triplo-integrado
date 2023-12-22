@@ -28,12 +28,12 @@ class Client:
         "231": "Intensidade inexistente", 
         "240": "Comunicação feita",
         "250": "Desconectado",
-        "260": "Desconectado, Digite a nota do conselheiro.",
-        "261": "Nota inválida, Nota deve ser entre 0 e 10.",
-        "262": "Nota apurada",
+        "260": "Nota apurada",
+        "261": "Nota inválida",
         "270": "Conectado a um chat",
         "299": "Muitas tentativas de login, tente mais tarde.",
         "555": "Erro no servidor"
+
     }
 
     def start_client(self):
@@ -139,7 +139,8 @@ class Client:
         if type == 2:
             print("\nEsperando por um(a) Indeciso(a)...\n")
             self.sock.send(f"type&counselor".encode("utf-8"))
-            self.waitingConnection()
+            response_server = self.sock.recv(4096).decode("utf-8").split("&")
+            self.waitingConnection(response_server)
             return
         
     def set_assunto(self):
@@ -171,46 +172,35 @@ class Client:
         while True:
             try:
                 intensidade = int(input("Intensidade: "))
-                if intensidade < 0 and intensidade > 3:
-                    print("Escolha uma intensidade válida (1, 2 ou 3)!")
-                    self.set_intensity(assunto)
-                    return
+                
                 self.sock.send(f"type&undecided&{assunto}&{intensidade}".encode("utf-8"))
                 response_server = self.sock.recv(4096).decode("utf-8").split("&")
-                print("181", response_server)
+                print("linha 132", response_server)
                 if response_server[0] == "231":
                     print(self.CodesTranslate[response_server[0]])
-                    self.set_intensity(assunto)
-                    return
-                
-                elif response_server[0] == "301":
-                    print(self.CodesTranslate[response_server[0]])
-                    self.set_intensity(assunto)
-                    return
-                
-                elif response_server[0] == "220":
-                    print("\nProcurando por um(a) Conselheiro(a)...\n")
-                    self.waitingConnection()
+                    self.set_intensity(assunto, self.sock)
+                else:
+                    print("\nProcurando por um(a) Indeciso(a)...\n")
+                    self.waitingConnection(response_server)
                     return
             except Exception:
                 print("\nEscolha uma intensidade válida (1, 2 ou 3)!\n")
 
-    def waitingConnection(self):   
+    def waitingConnection(self, response_server):   
         """
         `waitingConnection` é responsável por lidar com a resposta do servidor após solicitar a criação de um chat ou ao entrar em um chat existente. 
         Se o código da resposta for "270" (indicação de sucesso na criação ou entrada no chat), imprime informações sobre o chat (assunto e intensidade), 
         define `conected` como True (indicando que o cliente está conectado ao chat) e inicia uma nova thread para escutar mensagens do chat (`escutar`). 
         Em seguida, chama o método `DigitOnchat` para permitir que o usuário envie mensagens para o chat.
         """
-        response_server = self.sock.recv(4096).decode("utf-8").split("&") 
+
         if response_server[0] == "270":
-            print(self.CodesTranslate[response_server[0]], f"Assunto: {response_server[1]} Intensidade: {response_server[2]}")
+            print(response_server[0], f"Assunto: {response_server[1]} Intensidade: {response_server[2]}")
             self.conected = True
             print("Chat iniciado!")
             threading.Thread(target=self.escutar, args=()).start()
             self.DigitOnchat()
-            return
-        
+            
     def escutar(self):
         """
         `escutar` é um método responsável por ouvir as mensagens do servidor. 
@@ -220,22 +210,10 @@ class Client:
         """
         while True:
             response_server = self.sock.recv(4096).decode("utf-8").split("&")
-            if response_server[0] == "260":
-                print(self.CodesTranslate[response_server[0]])
-                while response_server[0]:
-                    response_server = self.sock.recv(4096).decode("utf-8").split("&")              
-                    if response_server[0] == "262":
-                        print(self.CodesTranslate[response_server[0]])
-                        self.conected = False
-                        break
-                    print(self.CodesTranslate[response_server[0]])
-                break
-                        
             if not response_server[0] == "250":
-                print(response_server[0])
-                
+                print(response_server[1])
             else:
-                print("Chat finalizado!")
+                print("VOCE FOI DESCONECTADO!!!")
                 self.conected = False 
                 break
             
