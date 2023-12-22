@@ -33,6 +33,7 @@ class Client:
         "270": "Conectado a um chat",
         "299": "Muitas tentativas de login, tente mais tarde.",
         "555": "Erro no servidor"
+
     }
 
     def start_client(self):
@@ -209,7 +210,7 @@ class Client:
         """
         while True:
             response_server = self.sock.recv(4096).decode("utf-8").split("&")
-            if not response_server[1] == "250":
+            if not response_server[0] == "250":
                 print(response_server[1])
             else:
                 print("VOCE FOI DESCONECTADO!!!")

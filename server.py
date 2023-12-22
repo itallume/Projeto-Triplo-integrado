@@ -81,18 +81,18 @@ class Server:
                             if self.usersHashTable.contains(msg_client[1]) and not self.OnlineUsers.contains(msg_client[1]):
                                     #retorna um objeto User
                                 if self.usersHashTable.get(msg_client[1]).confirmPassword(msg_client[2]):  # com o metodo confirmPassword da classe User, faz a confirmação da senha
-                                    connection.send("200".encode('utf-8')) # subtituir por codigos
+                                    connection.send("200".encode('utf-8'))
                                     UserObject = self.usersHashTable.get(msg_client[1])
                                     with self.Lock: 
                                         self.OnlineUsers.put(msg_client[1], msg_client[1])
                                     login = True
                                     break
                                 else:
-                                    connection.send("201".encode('utf-8'))  # subtituir por codigos
+                                    connection.send("201".encode('utf-8')) 
                                     msg_client = connection.recv(4096).decode("utf-8").split(" ")
                                     continue
                             else:
-                                connection.send("201".encode('utf-8')) # subtituir por codigos
+                                connection.send("201".encode('utf-8'))
                                 msg_client = connection.recv(4096).decode("utf-8").split(" ") 
                                 continue
                         if login == False:
@@ -104,14 +104,14 @@ class Server:
                     if msg_client[0] == "register":   
                                                              
                         if self.usersHashTable.contains(msg_client[1]): # verifica se já existe algum usuário com o nome de usuário desejado
-                            connection.send("211".encode('utf-8')) # subtituir por codigos
+                            connection.send("211".encode('utf-8'))
                             continue
                         
                         UserObject = User(msg_client[1], msg_client[2])
                         with self.Lock:
                             self.usersHashTable.put(msg_client[1], UserObject) # abre o server
                             self.OnlineUsers.put(msg_client[1], msg_client[1])
-                        connection.send("210".encode('utf-8')) # subtituir por codigos
+                        connection.send("210".encode('utf-8'))
                         self.usersHashTable.displayTable()
                         print()
                         break
@@ -161,17 +161,17 @@ class Server:
                         for participants in chat.getClients():
                             with self.Lock:
                                 self.OnlineUsers.remove(participants[0])
-                            participants[1].send(f"txt&{response}".encode('utf-8')) #talvez cause bug
+                            participants[1].send(f"{response}".encode('utf-8')) #talvez cause bug
                             connection.close()
                         break
                     
                     else:
                         for participants in chat.getClients():
                             
-                            participants[1].send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
+                            participants[1].send(f"240&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
                         
             except ConnectionResetError as e:
-                print("Ouve um erro na conecção!")
+                print("Ouve um erro na conexão!")
                  
                 
         
