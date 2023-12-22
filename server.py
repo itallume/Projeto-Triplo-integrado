@@ -17,6 +17,7 @@ class Server:
         self.arvore = BinarySearchTree()
         self.MinNote = None
         self.Lock = threading.Lock()
+        self.OnlineUsers = ChainingHashTable(20) 
         
     def setDictionary(self):
         """ Atribui ao atributo MinNote da classe o dicionário que
@@ -34,6 +35,13 @@ class Server:
         }
         
     def start_server(self):
+        """
+        `start_server` é um método responsável por iniciar o servidor. Ele configura o dicionário de notas mínimas chamando o método `setDictionary, 
+        cria um socket para o servidor usando `socket.socket`, faz o bind do socket, e então inicia o modo de escuta do socket usando `listen()`.
+
+        Após essas configurações, o método entra em um loop infinito (`while True`) onde aguarda novas conexões de clientes chamando `aceitar_clientes` e passando o socket do servidor como argumento. 
+        Esse método é responsável por aceitar novas conexões de clientes e iniciar uma nova thread para lidar com a comunicação com cada cliente. O loop continua indefinidamente para aceitar várias conexões consecutivas.
+        """
         self.setDictionary()
         clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clientSocket.bind(("0.0.0.0", self.port))
@@ -45,6 +53,11 @@ class Server:
             
 
     def aceitar_clientes(self, clientSocket):
+        """
+        `aceitar_clientes` é responsável por aceitar a conexão de um cliente. 
+        Ele cria uma nova thread para lidar com a comunicação com esse cliente, chamando o método `clientComunication` e 
+        passando a conexão como argumento. Essa abordagem permite que o servidor aceite múltiplas conexões simultaneamente.
+        """
         
         connection, end_client = clientSocket.accept()
         print(f"Conexão estabelecida com {end_client}")
@@ -52,7 +65,10 @@ class Server:
         threading.Thread(target=self.clientComunication, args=(connection,)).start()
         
     def clientComunication(self, connection):
-        """Metodo que contem todos os meios de comunicação com o cliente"""
+        """
+        O método gerencia a comunicação entre servidor e cliente. 
+        Ele trata os comandos de login e registro, autenticando as credenciais do cliente. 
+        Mmonitora o envio e recebimento de mensagens no chat, lidando com eventos como desconexões e comandos específicos que levam a ações como encerrar a comunicação. """
         while True:  
                 try:   
                     msg_client = connection.recv(4096).decode("utf-8").split(" ")
@@ -62,11 +78,13 @@ class Server:
                         for i in range(6): 
                             if i > 4:
                                 break                                                                 
-                            if self.usersHashTable.contains(msg_client[1]):
+                            if self.usersHashTable.contains(msg_client[1]) and not self.OnlineUsers.contains(msg_client[1]):
                                     #retorna um objeto User
                                 if self.usersHashTable.get(msg_client[1]).confirmPassword(msg_client[2]):  # com o metodo confirmPassword da classe User, faz a confirmação da senha
                                     connection.send("200".encode('utf-8')) # subtituir por codigos
                                     UserObject = self.usersHashTable.get(msg_client[1])
+                                    with self.Lock: 
+                                        self.OnlineUsers.put(msg_client[1], msg_client[1])
                                     login = True
                                     break
                                 else:
@@ -92,17 +110,15 @@ class Server:
                         UserObject = User(msg_client[1], msg_client[2])
                         with self.Lock:
                             self.usersHashTable.put(msg_client[1], UserObject) # abre o server
+                            self.OnlineUsers.put(msg_client[1], msg_client[1])
                         connection.send("210".encode('utf-8')) # subtituir por codigos
                         self.usersHashTable.displayTable()
                         print()
                         break
-             #Enviar codigo ABRE ABER ABRE ABRE manda paulo ir fazendo os SUPER COMENTARIOS AI DOCUEMNTACAO
                 except ConnectionResetError as e:
                     print(f"Erro de conexão: {e}")
                     connection.send("555".encode('utf-8')) #Enviar codigo
                     
-                    
-            
         while True:
                 msg_client = connection.recv(4096).decode("utf-8").split("&")
                 
@@ -114,9 +130,9 @@ class Server:
                             newChat = Chat(msg_client[2], int(msg_client[3]))# cria um objeto chat com o assunto e a intensidad 
                             newChat.addOnChat(UserObject.nickname, connection) # adiciona o menbro no chat
                             chat = newChat
-                            chat.ind
+                            chat.Indeciso = [UserObject.nickname, connection]
                             # usar lock 
-                            threading.Thread(target= self.matchClients, args=(chat,)).start()
+                            threading.Thread(target= self.matchClients, args=(chat, UserObject)).start()
                             print
                             break
                         else:
@@ -131,9 +147,6 @@ class Server:
                             time.sleep(0.2)
                         chat = UserObject.chat # mandar a solicitação de chat aqui
                         break
-            # except ConnectionResetError as e:
-            #     print(f"Erro de conexão: {e}")
-            #     connection.send("555".encode('utf-8')) #Enviar codigo
                 
         while True: 
             try:
@@ -142,29 +155,32 @@ class Server:
              #Enviar codigo
             
                 if msg_client[0] == "msg":
-
                     if msg_client[1].lower() == 'exit':
                         print(f"Desconectado: {UserObject.nickname}")
-                        
                         response = '250'
                         for participants in chat.getClients():
-                            participants.send(f"txt&{response}".encode('utf-8')) #talvez cause bug
+                            with self.Lock:
+                                self.OnlineUsers.remove(participants[0])
+                            participants[1].send(f"txt&{response}".encode('utf-8')) #talvez cause bug
                             connection.close()
-                             #PRECISA PARAR A THREAD
-                            break
+                        break
+                    
                     else:
                         for participants in chat.getClients():
-                            print("socket: ", participants)
-                            participants.send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
-                         
+                            
+                            participants[1].send(f"txt&{UserObject.nickname}: {msg_client[1]}".encode('utf-8'))  
+                        
             except ConnectionResetError as e:
-                print(f"Erro de conexão: {e}")
-                connection.send("555".encode('utf-8'))  
-        # dar a nota caso seja o indeciso  
+                print("Ouve um erro na conecção!")
+                 
+                
         
-            #fecha conexao <_-----------------------------------------
-        
-    def matchClients(self, chat):
+    def matchClients(self, chat, UserObject):
+        """
+        O método `matchClients` é responsável por emparelhar os usuários com base em suas preferências e disponibilidade. 
+        Ele utiliza a árvore de conselheiros para encontrar um conselheiro disponível com a nota mínima necessária para participar do chat. 
+        Após encontrar um conselheiro adequado, o método atualiza as informações do chat e notifica todos os membros sobre o início da sessão, enviando detalhes como o assunto e a intensidade do chat. 
+        """
         minNote = self.MinNote[chat.intensidade]
         
         while len(self.arvore) == 0:
@@ -173,18 +189,18 @@ class Server:
         minNote = InfoCounselor(None, None, minNote)
         
         counselor = self.arvore.GetEqualOrMajor(minNote)
+        undecided = UserObject
         with self.Lock:
             print(self.arvore.deleteNode(counselor).nickname)
         chat.addOnChat(counselor.nickname, counselor.socket)
         self.usersHashTable.get(counselor.nickname).chat = chat
+        self.usersHashTable.get(undecided.nickname).chat = chat
         clients_socktes = chat.getClients()
         for connection in clients_socktes:
-            connection.send(f"270&{chat.assunto}&{chat.intensidade}".encode('utf-8'))        
+            connection[1].send(f"270&{chat.assunto}&{chat.intensidade}".encode('utf-8'))        
         return
                 
 
 
 servidor = Server("0.0.0.0", 12345)
-# servidor.usersHashTable.put("itallo" ,User("itallo", "123"))
-# servidor.usersHashTable.put("paulo" ,User("paulo", "123"))
 servidor.start_server()
